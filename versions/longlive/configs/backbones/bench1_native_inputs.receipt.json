@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "scope": "READ_ONLY_HISTORICAL_SOURCE_AND_REAL_MP4_AUDIT_NO_NEW_GPU",
+  "source_root_binding": "DRAFTKV_HISTORY_ROOT",
+  "source_files": {
+    "longlive_baseline/formal_MEMFLOW_037/native_formal.yaml": "c59dfffbb2cd16532089fffc7795ae85f66e5981a487dc8ef352d279f4881fc8",
+    "longlive_baseline/formal_MEMFLOW_037/supervisor_receipt.json": "52c40b7bf83d8795740414d52c1e981890367435f54568061ef7c7a066a0b5f1",
+    "longlive_baseline/source_retry1/pipeline/interactive_causal_inference.py": "9c6e96928a59768fcf2b9e6a74836bf7c6e241a3c30cedabb234a314d9bd8f47",
+    "longlive_baseline/source_retry1/utils/wan_wrapper.py": "8416f2e2190e7731618a7afbaee8bfacc92df5918d65e2c493e7481262d18821",
+    "bench1_penguin_random100_ti_98case_20261025/verify_penguin98.py": "f2dff544db281b62f01d8fe4bd809cf3610a190d22531a358abb3130cf39f9d6",
+    "bench1_penguin_random100_ti_98case_20261025/INPUT_PARITY_98_RECEIPT.json": "93705515f75e88d902629fd190b7203001e843c142dde5185a473945ba7ae0f5",
+    "bench1_penguin_random100_ti_98case_20261025/launch_penguin98.py": "8326467ac1f31d6e929571c76741355a2f015111b987c286512b8a334b6a8d80",
+    "bench1_penguin_random100_ti_98case_20261025/jobs/PVB_004/baseline.json": "1f7e71c21fc0ab03d13b20641afa50260ee673c1c112d3a691182d91fabdbc74",
+    "bench1_lingbot14_i2t_5case/build_lingbot14_i2t_native.py": "3df53a4397368b2d1403647d6fd2452ae191f755fe4438db796488be80e75637"
+  },
+  "LongLive1.3B": {
+    "historical_native_e2e": true,
+    "new_repository_e2e": false,
+    "source_case": "MEMFLOW_037",
+    "source_prompt_schedule": "six historical text prompts; only output/model parameters reused; new T2V98 has one static prompt",
+    "config_relative_path": "longlive_baseline/formal_MEMFLOW_037/native_formal.yaml",
+    "video_relative_path": "longlive_baseline/formal_MEMFLOW_037/native_videos/rank0-0-0_lora.mp4",
+    "video_sha256": "977e6b363f839b444531fdf39f839e20a9b1528023e734b24f42f59909bc27c6",
+    "video_bytes": 7805250,
+    "ffprobe": {
+      "nb_read_frames": 957,
+      "avg_frame_rate": "16/1",
+      "width": 832,
+      "height": 480
+    },
+    "exit_code": 0,
+    "decode_call": "self.vae.decode_to_pixel(output.to(noise.device), use_cache=False)",
+    "decode_method_ast_sha256": "423351c4d3ab73ad6913eea7e98423d36eb4e8f4d6044ba6be27535a485aaf3f",
+    "current_wrapper_sha256": "4de4e71f290cc061187478b70b97dce5e7c2395c31bfdfdd9d768f97ef6f15e7",
+    "historical_wrapper_sha256": "8416f2e2190e7731618a7afbaee8bfacc92df5918d65e2c493e7481262d18821",
+    "full_decode_method_ast_identical": true,
+    "checkpoint_sha256": {
+      "base": "10a2aa8fcf89c77d9033f4c117405412a690e289625766619d293f0c5a208ee7",
+      "lora": "c4e43b87d62d4b0614b496773639f1ab170a7ee486dc23407901e9d3a5ebc07a"
+    }
+  },
+  "LingBot14B": {
+    "camera_origin": "protocol_adapter; not dataset-native camera observations",
+    "policy": "same_static_identity_opencv_c2w_as_legacy",
+    "source_camera_relative_path": "bench1_lingbot14_i2t_5case/cases/MEMFLOW_012/input",
+    "ti_camera_relative_path": "bench1_penguin_random100_ti_98case_20261025/cases/PVB_004/input",
+    "source_and_ti_camera_bytes_identical": true,
+    "poses": {
+      "sha256": "93d965b619b23a52b0e472dad3c1c2fc7bb6a77426d3fd3132508b7aa4ef794c",
+      "dtype": "float64",
+      "shape": [
+        961,
+        4,
+        4
+      ],
+      "recipe": "repeat identity OpenCV C2W 961 times"
+    },
+    "intrinsics": {
+      "sha256": "36da46ef425fce74542468b2762708459fca1bd3b752497b05797c1ab98c2790",
+      "dtype": "float32",
+      "shape": [
+        1,
+        4
+      ],
+      "values": [
+        832.0,
+        832.0,
+        416.0,
+        240.0
+      ]
+    },
+    "source_cpu_parity": "INPUT_PARITY_490_OF_490_PASS; camera_bytes_equal_to_existing_entry=true",
+    "source_native_preflight": "961 requested frames, 60 C4 chunks, 240 latent, 957 effective output frames; asserted in launch_penguin98.py",
+    "camera_convention_verified": true,
+    "current_ti98_video_e2e": false,
+    "camera_video_e2e_scope": "No claim that existing TI98 camera bytes have completed current-repository GPU E2E"
+  }
+}
