@@ -1,0 +1,2131 @@
+{
+  "schema": 1,
+  "scope": "Installation and asset provisioning only; no generation or scientific plan changes.",
+  "baseline_main": "531294aaec502cdb970c514f5b86ccc15197fcde",
+  "fa2_official_wheels": {
+    "2.6.0+cu124": {
+      "version": "2.8.3",
+      "filename": "flash_attn-2.8.3+cu12torch2.6cxx11abiFALSE-cp310-cp310-linux_x86_64.whl",
+      "url": "https://github.com/Dao-AILab/flash-attention/releases/download/v2.8.3/flash_attn-2.8.3%2Bcu12torch2.6cxx11abiFALSE-cp310-cp310-linux_x86_64.whl",
+      "sha256": "1c8d2fb083edea3647688fcd4bb21d4641eb01f50359d8fa6200ecd093ba1c54",
+      "bytes": 256007522
+    },
+    "2.8.0+cu128": {
+      "version": "2.8.3.post1",
+      "filename": "flash_attn-2.8.3.post1+cu12torch2.8cxx11abiTRUE-cp310-cp310-linux_x86_64.whl",
+      "url": "https://github.com/Dao-AILab/flash-attention/releases/download/v2.8.3.post1/flash_attn-2.8.3.post1%2Bcu12torch2.8cxx11abiTRUE-cp310-cp310-linux_x86_64.whl",
+      "sha256": "93f44772f2d63814086666b30dfa1808b96ca5cbd2efe292a96cafa7e6e7df2e",
+      "bytes": 256026375
+    }
+  },
+  "environments": {
+    "longlive1.3b": {
+      "version_tree": "longlive",
+      "python": "3.10",
+      "python_microversion": null,
+      "platform": "Linux x86_64",
+      "torch_cuda": "12.8",
+      "compiler_cuda": "12.9",
+      "compiler_gcc": null,
+      "driver_headers_minimum": "12.8",
+      "recorded_compute_capability": "9.0",
+      "packages": {
+        "torch": "2.8.0+cu128",
+        "flash-attn": "2.8.3.post1",
+        "diffusers": "0.31.0",
+        "safetensors": "0.8.0",
+        "numpy": "2.2.6",
+        "Pillow": "12.3.0",
+        "easydict": "1.13",
+        "einops": "0.8.2",
+        "transformers": "4.57.6",
+        "tokenizers": "0.22.2",
+        "tqdm": "4.70.1",
+        "sentencepiece": "0.2.2",
+        "peft": "0.21.0",
+        "torchvision": "0.23.0+cu128",
+        "ftfy": "6.3.1"
+      },
+      "manual_distributions": [
+        "flash-attn"
+      ],
+      "site_files": {
+        "flash_attn_interface.py": "69cfa291e4f21f1dc0c4281557fd2cb5fb349bfb68f12b2596d779ba473d6c4a",
+        "flash_attn_3/_C.abi3.so": "62663040a5fc8769014977f66eb76103d5b7ab9a97815a1f91493703eaeba092"
+      },
+      "original_native_sha256": {
+        "route": "c810ceeb55c90e3bd3ac91f0d83c919b9f72483c32c2bc1a39b1eccd73ed70fb",
+        "slot": "038bc4697a716b4937264699006ecc647fc4d561ef641bbc8a9b94d67ed97f65"
+      },
+      "source_evidence": "Table 1 original profile",
+      "source_evidence_sha256": "86ab86d865619ae5f95073c1a730cb285c1a766bd52441cccd6f7aeeb199d0b0",
+      "fa3_wheel": {
+        "filename": "flash_attn_3-3.0.0b1-cp39-abi3-linux_x86_64.whl",
+        "sha256": "93517cf3517570220106062dd448559d7f28fb9447159398372d881b4f256c98",
+        "bytes": 4018292
+      }
+    },
+    "lingbot1.3b": {
+      "version_tree": "lingbot13",
+      "python": "3.10",
+      "python_microversion": null,
+      "platform": "Linux x86_64",
+      "torch_cuda": "12.4",
+      "compiler_cuda": "12.6",
+      "compiler_gcc": "11.4",
+      "driver_headers_minimum": "12.8",
+      "recorded_compute_capability": "9.0",
+      "packages": {
+        "torch": "2.6.0+cu124",
+        "flash-attn": "2.8.3",
+        "diffusers": "0.40.0",
+        "safetensors": "0.8.0",
+        "numpy": "2.2.6",
+        "Pillow": "9.0.1",
+        "easydict": "1.13",
+        "einops": "0.8.2",
+        "transformers": "5.12.1",
+        "tokenizers": "0.22.2",
+        "tqdm": "4.70.1",
+        "sentencepiece": "0.2.0"
+      },
+      "manual_distributions": [
+        "flash-attn"
+      ],
+      "site_files": {},
+      "original_native_sha256": {
+        "route": "08c35e93242b84f507fa4fb209f192c84e46636c9ccf279f9c09ae5cdbc2a9d8",
+        "slot": "863411c9f4305c8f88583dcd996e6f2470b2f16639d140922601761daf987860"
+      },
+      "source_evidence": "Table 2 original profile",
+      "source_evidence_sha256": "86ab86d865619ae5f95073c1a730cb285c1a766bd52441cccd6f7aeeb199d0b0",
+      "fa3_version": "3.0.0b1",
+      "installation_packages": {
+        "annotated-doc": "0.0.5",
+        "anyio": "4.15.1",
+        "certifi": "2026.7.22",
+        "charset-normalizer": "3.5.2",
+        "click": "8.5.0",
+        "exceptiongroup": "1.3.1",
+        "filelock": "3.32.3",
+        "fsspec": "2026.7.0",
+        "ftfy": "6.3.1",
+        "h11": "0.16.0",
+        "hf-xet": "1.7.0",
+        "httpcore": "1.0.9",
+        "httpx": "0.28.1",
+        "huggingface-hub": "1.33.0",
+        "idna": "3.20",
+        "imageio": "2.38.0",
+        "imageio-ffmpeg": "0.6.0",
+        "importlib-metadata": "9.0.1",
+        "jinja2": "3.1.6",
+        "markdown-it-py": "4.2.0",
+        "markupsafe": "3.0.3",
+        "mdurl": "0.1.2",
+        "mpmath": "1.3.0",
+        "networkx": "3.4.2",
+        "ninja": "1.13.2",
+        "nvidia-cublas-cu12": "12.4.5.8",
+        "nvidia-cuda-cupti-cu12": "12.4.127",
+        "nvidia-cuda-nvrtc-cu12": "12.4.127",
+        "nvidia-cuda-runtime-cu12": "12.4.127",
+        "nvidia-cudnn-cu12": "9.1.0.70",
+        "nvidia-cufft-cu12": "11.2.1.3",
+        "nvidia-curand-cu12": "10.3.5.147",
+        "nvidia-cusolver-cu12": "11.6.1.9",
+        "nvidia-cusparse-cu12": "12.3.1.170",
+        "nvidia-cusparselt-cu12": "0.6.2",
+        "nvidia-nccl-cu12": "2.21.5",
+        "nvidia-nvjitlink-cu12": "12.4.127",
+        "nvidia-nvtx-cu12": "12.4.127",
+        "packaging": "26.3",
+        "psutil": "7.2.2",
+        "pygments": "2.21.0",
+        "pyyaml": "6.0.3",
+        "regex": "2026.9.29",
+        "requests": "2.34.2",
+        "rich": "15.0.0",
+        "scipy": "1.15.3",
+        "shellingham": "1.5.4",
+        "sympy": "1.13.1",
+        "tomli": "2.5.0",
+        "torchvision": "0.21.0+cu124",
+        "triton": "3.2.0",
+        "typer": "0.27.3",
+        "typing-extensions": "4.16.0",
+        "urllib3": "2.8.0",
+        "wcwidth": "0.9.4",
+        "zipp": "4.1.1"
+      },
+      "installation_packages_provenance": "H200 current-reference dependency metadata collected 2026-11-21, plus exact Requires-Dist of the official torch 2.6.0+cu124 wheel. Supplemental pins for this new installation smoke; NOT recovered historical lock. Original twelve package pins take precedence. torchvision uses the explicit official cu124 wheel build.",
+      "installation_reference_evidence": {
+        "collected": "2026-11-21",
+        "reference_metadata_sha256": "285696d852ede741e9b59dc5e3bda6c2de5c3b087206f5c956b51d9affccde8e",
+        "direct_import_metadata_sha256": "04b6bdf3e5ce7ad46228d19e5974b82412a2717782bbfa4b0c70182c5abb88bd",
+        "classification": "CURRENT_REFERENCE_AND_UPSTREAM_REQUIRED_INSTALLATION_PINS_NOT_HISTORICAL",
+        "python_observed": "3.10.12",
+        "python_historical_microversion": null
+      }
+    },
+    "lingbot14b": {
+      "version_tree": "h200_large",
+      "python": "3.10",
+      "python_microversion": null,
+      "platform": "Linux x86_64",
+      "torch_cuda": "12.4",
+      "compiler_cuda": "12.6",
+      "compiler_gcc": "11.4",
+      "driver_headers_minimum": "12.8",
+      "recorded_compute_capability": "9.0",
+      "packages": {
+        "torch": "2.6.0+cu124",
+        "flash-attn": "2.8.3",
+        "diffusers": "0.40.0",
+        "safetensors": "0.8.0",
+        "numpy": "2.2.6",
+        "Pillow": "9.0.1",
+        "easydict": "1.13",
+        "einops": "0.8.2",
+        "transformers": "5.12.1",
+        "tokenizers": "0.22.2",
+        "tqdm": "4.70.1",
+        "sentencepiece": "0.2.0"
+      },
+      "manual_distributions": [
+        "flash-attn"
+      ],
+      "site_files": {},
+      "original_native_sha256": {
+        "route": "3ac57fd3a1058fc10966541d1edaed88d977707fb717f97af03349c812564ed1"
+      },
+      "source_evidence": "Table 2 original profile",
+      "source_evidence_sha256": "425996eda784d9522ffcdaa141b1f6c526347c76e167a5425ec6bb98f788acc7",
+      "fa3_version": "3.0.0b1",
+      "portable_overrides": {
+        "Pillow": "9.5.0",
+        "ftfy": "6.3.1",
+        "torchvision": "0.21.0+cu124"
+      },
+      "portable_overrides_provenance": "H200 new-environment import failures observed 2026-11-22; Pillow 9.5.0 and torchvision 0.21.0+cu124 verified with Qwen3-VL, ftfy required by original backbone imports; portable-only, not paper environment"
+    },
+    "solarwm33b": {
+      "version_tree": "h200_large",
+      "python": "3.10",
+      "python_microversion": null,
+      "platform": "Linux x86_64",
+      "torch_cuda": "12.4",
+      "compiler_cuda": "12.6",
+      "compiler_gcc": "11.4",
+      "driver_headers_minimum": "12.8",
+      "recorded_compute_capability": "9.0",
+      "packages": {
+        "torch": "2.6.0+cu124",
+        "flash-attn": "2.8.3",
+        "diffusers": "0.40.0",
+        "safetensors": "0.8.0",
+        "numpy": "2.2.6",
+        "Pillow": "9.0.1",
+        "einops": "0.8.2",
+        "transformers": "5.12.1",
+        "tokenizers": "0.22.2",
+        "peft": "0.20.0",
+        "imageio": "2.37.4"
+      },
+      "manual_distributions": [
+        "flash-attn"
+      ],
+      "site_files": {
+        "diffusers/models/transformers/transformer_minimax_h3.py": "1926b1bc15a5bebda05e3dc8cde1b3955d56641ba7f8f9d6e90c8f78c66ae30c",
+        "diffusers/models/autoencoders/autoencoder_kl_minimax_h3.py": "4c3c9745ee27d16ff343c4998244bad41cd8f4213f0029cf7ce11ebb6d72ca1b",
+        "diffusers/modular_pipelines/minimax_h3/encoders.py": "fea751a889752ba58f1528acbc23b223e827ea707a75e2ae0c43d4a53ce758af",
+        "transformers/models/qwen3_vl/modeling_qwen3_vl.py": "f39b3621fea3f757a01d2e00ebd3a2be3516b7df3048d862a365988aba9fa994",
+        "transformers/models/qwen3_vl/processing_qwen3_vl.py": "add767ca5e9511e1db0a69091d51b1d0b2078c874d59ee3a58c4748b5d9014a4"
+      },
+      "original_native_sha256": {
+        "route": "3ac57fd3a1058fc10966541d1edaed88d977707fb717f97af03349c812564ed1"
+      },
+      "source_evidence": "Table 2 original profile",
+      "source_evidence_sha256": "425996eda784d9522ffcdaa141b1f6c526347c76e167a5425ec6bb98f788acc7",
+      "fa3_version": "3.0.0b1",
+      "portable_overrides": {
+        "Pillow": "9.5.0",
+        "ftfy": "6.3.1",
+        "torchvision": "0.21.0+cu124",
+        "imageio-ffmpeg": "0.6.0"
+      },
+      "portable_overrides_provenance": "H200 new-environment import failures observed 2026-11-22; Pillow 9.5.0 and torchvision 0.21.0+cu124 verified with Qwen3-VL, ftfy required by original backbone imports; portable-only, not paper environment; imageio-ffmpeg 0.6.0 is required by SolarWM native MP4 writing and was found missing after completed 33B sampling on H200 (2026-11-22)"
+    }
+  },
+  "assets": [
+    {
+      "id": "longlive:models/longlive_base.pt",
+      "category": "models",
+      "backbones": [
+        "longlive1.3b"
+      ],
+      "path": "models/longlive/models/longlive_base.pt",
+      "url": "https://huggingface.co/Efficient-Large-Model/LongLive-1.3B/resolve/cda9138d93872ef109d9a74c270184eb3a5acc6e/models/longlive_base.pt",
+      "sha256": "10a2aa8fcf89c77d9033f4c117405412a690e289625766619d293f0c5a208ee7",
+      "bytes": 5676334208,
+      "license": "cc-by-nc-sa-4.0",
+      "source": "https://huggingface.co/Efficient-Large-Model/LongLive-1.3B/tree/cda9138d93872ef109d9a74c270184eb3a5acc6e",
+      "gated": false,
+      "original_content_match": true
+    },
+    {
+      "id": "longlive:models/lora.pt",
+      "category": "models",
+      "backbones": [
+        "longlive1.3b"
+      ],
+      "path": "models/longlive/models/lora.pt",
+      "url": "https://huggingface.co/Efficient-Large-Model/LongLive-1.3B/resolve/cda9138d93872ef109d9a74c270184eb3a5acc6e/models/lora.pt",
+      "sha256": "c4e43b87d62d4b0614b496773639f1ab170a7ee486dc23407901e9d3a5ebc07a",
+      "bytes": 2800056690,
+      "license": "cc-by-nc-sa-4.0",
+      "source": "https://huggingface.co/Efficient-Large-Model/LongLive-1.3B/tree/cda9138d93872ef109d9a74c270184eb3a5acc6e",
+      "gated": false,
+      "original_content_match": true
+    },
+    {
+      "id": "wan:LICENSE.txt",
+      "category": "models",
+      "backbones": [
+        "longlive1.3b"
+      ],
+      "path": "models/wan/LICENSE.txt",
+      "url": "https://huggingface.co/Wan-AI/Wan2.1-T2V-1.3B/resolve/37ec512624d61f7aa208f7ea8140a131f93afc9a/LICENSE.txt",
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+      "bytes": 11357,
+      "license": "apache-2.0",
+      "source": "https://huggingface.co/Wan-AI/Wan2.1-T2V-1.3B/tree/37ec512624d61f7aa208f7ea8140a131f93afc9a",
+      "gated": false,
+      "original_content_match": false
+    },
+    {
+      "id": "wan:Wan2.1_VAE.pth",
+      "category": "models",
+      "backbones": [
+        "longlive1.3b"
+      ],
+      "path": "models/wan/Wan2.1_VAE.pth",
+      "url": "https://huggingface.co/Wan-AI/Wan2.1-T2V-1.3B/resolve/37ec512624d61f7aa208f7ea8140a131f93afc9a/Wan2.1_VAE.pth",
+      "sha256": "38071ab59bd94681c686fa51d75a1968f64e470262043be31f7a094e442fd981",
+      "bytes": 507609880,
+      "license": "apache-2.0",
+      "source": "https://huggingface.co/Wan-AI/Wan2.1-T2V-1.3B/tree/37ec512624d61f7aa208f7ea8140a131f93afc9a",
+      "gated": false,
+      "original_content_match": true
+    },
+    {
+      "id": "wan:google/umt5-xxl/special_tokens_map.json",
+      "category": "models",
+      "backbones": [
+        "longlive1.3b"
+      ],
+      "path": "models/wan/google/umt5-xxl/special_tokens_map.json",
+      "url": "https://huggingface.co/Wan-AI/Wan2.1-T2V-1.3B/resolve/37ec512624d61f7aa208f7ea8140a131f93afc9a/google/umt5-xxl/special_tokens_map.json",
+      "sha256": "7b8a9f5040adb67b5805abdfd42c1f8d0f3d0e711f10726580eb3789cd0ad61d",
+      "bytes": 6623,
+      "license": "apache-2.0",
+      "source": "https://huggingface.co/Wan-AI/Wan2.1-T2V-1.3B/tree/37ec512624d61f7aa208f7ea8140a131f93afc9a",
+      "gated": false,
+      "original_content_match": true
+    },
+    {
+      "id": "wan:google/umt5-xxl/spiece.model",
+      "category": "models",
+      "backbones": [
+        "longlive1.3b"
+      ],
+      "path": "models/wan/google/umt5-xxl/spiece.model",
+      "url": "https://huggingface.co/Wan-AI/Wan2.1-T2V-1.3B/resolve/37ec512624d61f7aa208f7ea8140a131f93afc9a/google/umt5-xxl/spiece.model",
+      "sha256": "e3909a67b780650b35cf529ac782ad2b6b26e6d1f849d3fbb6a872905f452458",
+      "bytes": 4548313,
+      "license": "apache-2.0",
+      "source": "https://huggingface.co/Wan-AI/Wan2.1-T2V-1.3B/tree/37ec512624d61f7aa208f7ea8140a131f93afc9a",
+      "gated": false,
+      "original_content_match": true
+    },
+    {
+      "id": "wan:google/umt5-xxl/tokenizer.json",
+      "category": "models",
+      "backbones": [
+        "longlive1.3b"
+      ],
+      "path": "models/wan/google/umt5-xxl/tokenizer.json",
+      "url": "https://huggingface.co/Wan-AI/Wan2.1-T2V-1.3B/resolve/37ec512624d61f7aa208f7ea8140a131f93afc9a/google/umt5-xxl/tokenizer.json",
+      "sha256": "6e197b4d3dbd71da14b4eb255f4fa91c9c1f2068b20a2de2472967ca3d22602b",
+      "bytes": 16837417,
+      "license": "apache-2.0",
+      "source": "https://huggingface.co/Wan-AI/Wan2.1-T2V-1.3B/tree/37ec512624d61f7aa208f7ea8140a131f93afc9a",
+      "gated": false,
+      "original_content_match": true
+    },
+    {
+      "id": "wan:google/umt5-xxl/tokenizer_config.json",
+      "category": "models",
+      "backbones": [
+        "longlive1.3b"
+      ],
+      "path": "models/wan/google/umt5-xxl/tokenizer_config.json",
+      "url": "https://huggingface.co/Wan-AI/Wan2.1-T2V-1.3B/resolve/37ec512624d61f7aa208f7ea8140a131f93afc9a/google/umt5-xxl/tokenizer_config.json",
+      "sha256": "ed9a3a8b0faa71a70a32847e0435fe036e6e112d4df4edb7bb48a921e344dc05",
+      "bytes": 61728,
+      "license": "apache-2.0",
+      "source": "https://huggingface.co/Wan-AI/Wan2.1-T2V-1.3B/tree/37ec512624d61f7aa208f7ea8140a131f93afc9a",
+      "gated": false,
+      "original_content_match": true
+    },
+    {
+      "id": "wan:models_t5_umt5-xxl-enc-bf16.pth",
+      "category": "models",
+      "backbones": [
+        "longlive1.3b"
+      ],
+      "path": "models/wan/models_t5_umt5-xxl-enc-bf16.pth",
+      "url": "https://huggingface.co/Wan-AI/Wan2.1-T2V-1.3B/resolve/37ec512624d61f7aa208f7ea8140a131f93afc9a/models_t5_umt5-xxl-enc-bf16.pth",
+      "sha256": "7cace0da2b446bbbbc57d031ab6cf163a3d59b366da94e5afe36745b746fd81d",
+      "bytes": 11361920418,
+      "license": "apache-2.0",
+      "source": "https://huggingface.co/Wan-AI/Wan2.1-T2V-1.3B/tree/37ec512624d61f7aa208f7ea8140a131f93afc9a",
+      "gated": false,
+      "original_content_match": true
+    },
+    {
+      "id": "lingbot13:model-00001-of-00006.safetensors",
+      "category": "models",
+      "backbones": [
+        "lingbot1.3b"
+      ],
+      "path": "models/lingbot13/model-00001-of-00006.safetensors",
+      "url": "https://huggingface.co/robbyant/lingbot-world-v2-1.3b-causal-fast/resolve/7e36a5f919f86cb4255cc9bfc30adb44963fbde1/model-00001-of-00006.safetensors",
+      "sha256": "4169eaf504fc63c235f4b66c95887951ecd71ba4ca9492e8528b6709d63ed9b2",
+      "bytes": 1101302873,
+      "license": "cc-by-nc-sa-4.0",
+      "source": "https://huggingface.co/robbyant/lingbot-world-v2-1.3b-causal-fast/tree/7e36a5f919f86cb4255cc9bfc30adb44963fbde1",
+      "gated": false,
+      "original_content_match": true
+    },
+    {
+      "id": "lingbot13:model-00002-of-00006.safetensors",
+      "category": "models",
+      "backbones": [
+        "lingbot1.3b"
+      ],
+      "path": "models/lingbot13/model-00002-of-00006.safetensors",
+      "url": "https://huggingface.co/robbyant/lingbot-world-v2-1.3b-causal-fast/resolve/7e36a5f919f86cb4255cc9bfc30adb44963fbde1/model-00002-of-00006.safetensors",
+      "sha256": "e6745d1e600f697f2285ca435de09c49d2082303b7f9a2bb39003fc87b354d2f",
+      "bytes": 1227848825,
+      "license": "cc-by-nc-sa-4.0",
+      "source": "https://huggingface.co/robbyant/lingbot-world-v2-1.3b-causal-fast/tree/7e36a5f919f86cb4255cc9bfc30adb44963fbde1",
+      "gated": false,
+      "original_content_match": true
+    },
+    {
+      "id": "lingbot13:model-00003-of-00006.safetensors",
+      "category": "models",
+      "backbones": [
+        "lingbot1.3b"
+      ],
+      "path": "models/lingbot13/model-00003-of-00006.safetensors",
+      "url": "https://huggingface.co/robbyant/lingbot-world-v2-1.3b-causal-fast/resolve/7e36a5f919f86cb4255cc9bfc30adb44963fbde1/model-00003-of-00006.safetensors",
+      "sha256": "20f9b226fcfcfb4dead5c1e3ff1b77da182787442ebabfdaf23d3c68aca44ceb",
+      "bytes": 1136593160,
+      "license": "cc-by-nc-sa-4.0",
+      "source": "https://huggingface.co/robbyant/lingbot-world-v2-1.3b-causal-fast/tree/7e36a5f919f86cb4255cc9bfc30adb44963fbde1",
+      "gated": false,
+      "original_content_match": true
+    },
+    {
+      "id": "lingbot13:model-00004-of-00006.safetensors",
+      "category": "models",
+      "backbones": [
+        "lingbot1.3b"
+      ],
+      "path": "models/lingbot13/model-00004-of-00006.safetensors",
+      "url": "https://huggingface.co/robbyant/lingbot-world-v2-1.3b-causal-fast/resolve/7e36a5f919f86cb4255cc9bfc30adb44963fbde1/model-00004-of-00006.safetensors",
+      "sha256": "5b5c18cc18a4de976002f45777f59b4d27d30786c6db94e134d0af5a031f5272",
+      "bytes": 1136623879,
+      "license": "cc-by-nc-sa-4.0",
+      "source": "https://huggingface.co/robbyant/lingbot-world-v2-1.3b-causal-fast/tree/7e36a5f919f86cb4255cc9bfc30adb44963fbde1",
+      "gated": false,
+      "original_content_match": true
+    },
+    {
+      "id": "lingbot13:model-00005-of-00006.safetensors",
+      "category": "models",
+      "backbones": [
+        "lingbot1.3b"
+      ],
+      "path": "models/lingbot13/model-00005-of-00006.safetensors",
+      "url": "https://huggingface.co/robbyant/lingbot-world-v2-1.3b-causal-fast/resolve/7e36a5f919f86cb4255cc9bfc30adb44963fbde1/model-00005-of-00006.safetensors",
+      "sha256": "089575f86c3c62e12566a79c5e0afd663415aa4376e193b45ee2bb2ac65a9cbe",
+      "bytes": 1146024211,
+      "license": "cc-by-nc-sa-4.0",
+      "source": "https://huggingface.co/robbyant/lingbot-world-v2-1.3b-causal-fast/tree/7e36a5f919f86cb4255cc9bfc30adb44963fbde1",
+      "gated": false,
+      "original_content_match": true
+    },
+    {
+      "id": "lingbot13:model-00006-of-00006.safetensors",
+      "category": "models",
+      "backbones": [
+        "lingbot1.3b"
+      ],
+      "path": "models/lingbot13/model-00006-of-00006.safetensors",
+      "url": "https://huggingface.co/robbyant/lingbot-world-v2-1.3b-causal-fast/resolve/7e36a5f919f86cb4255cc9bfc30adb44963fbde1/model-00006-of-00006.safetensors",
+      "sha256": "c0d3d8643d07b6d6e26d614f80cf3538a562f575937a759c64a71d5575f2f915",
+      "bytes": 1089732112,
+      "license": "cc-by-nc-sa-4.0",
+      "source": "https://huggingface.co/robbyant/lingbot-world-v2-1.3b-causal-fast/tree/7e36a5f919f86cb4255cc9bfc30adb44963fbde1",
+      "gated": false,
+      "original_content_match": true
+    },
+    {
+      "id": "lingbot13:model.safetensors.index.json",
+      "category": "models",
+      "backbones": [
+        "lingbot1.3b"
+      ],
+      "path": "models/lingbot13/model.safetensors.index.json",
+      "url": "https://huggingface.co/robbyant/lingbot-world-v2-1.3b-causal-fast/resolve/7e36a5f919f86cb4255cc9bfc30adb44963fbde1/model.safetensors.index.json",
+      "sha256": "b0409d663b57810af19443c9e8d8dde43320193c8dbb979d86f6618102922e42",
+      "bytes": 76865,
+      "license": "cc-by-nc-sa-4.0",
+      "source": "https://huggingface.co/robbyant/lingbot-world-v2-1.3b-causal-fast/tree/7e36a5f919f86cb4255cc9bfc30adb44963fbde1",
+      "gated": false,
+      "original_content_match": true
+    },
+    {
+      "id": "lingbot14:Wan2.1_VAE.pth",
+      "category": "models",
+      "backbones": [
+        "lingbot14b",
+        "lingbot1.3b"
+      ],
+      "path": "models/lingbot14/Wan2.1_VAE.pth",
+      "url": "https://huggingface.co/robbyant/lingbot-world-v2-14b-causal-fast/resolve/5c33dd40b213598c418fd25bff30fdbd23fd38a7/Wan2.1_VAE.pth",
+      "sha256": "38071ab59bd94681c686fa51d75a1968f64e470262043be31f7a094e442fd981",
+      "bytes": 507609880,
+      "license": "cc-by-nc-sa-4.0",
+      "source": "https://huggingface.co/robbyant/lingbot-world-v2-14b-causal-fast/tree/5c33dd40b213598c418fd25bff30fdbd23fd38a7",
+      "gated": false,
+      "original_content_match": true
+    },
+    {
+      "id": "lingbot14:config.json",
+      "category": "models",
+      "backbones": [
+        "lingbot14b"
+      ],
+      "path": "models/lingbot14/config.json",
+      "url": "https://huggingface.co/robbyant/lingbot-world-v2-14b-causal-fast/resolve/5c33dd40b213598c418fd25bff30fdbd23fd38a7/config.json",
+      "sha256": "1b73e66e5d82858ed9cfb65b93793e3221c2e3d3fe6ecb8dca29c106b2f20930",
+      "bytes": 251,
+      "license": "cc-by-nc-sa-4.0",
+      "source": "https://huggingface.co/robbyant/lingbot-world-v2-14b-causal-fast/tree/5c33dd40b213598c418fd25bff30fdbd23fd38a7",
+      "gated": false,
+      "original_content_match": true
+    },
+    {
+      "id": "lingbot14:google/umt5-xxl/special_tokens_map.json",
+      "category": "models",
+      "backbones": [
+        "lingbot14b",
+        "lingbot1.3b"
+      ],
+      "path": "models/lingbot14/google/umt5-xxl/special_tokens_map.json",
+      "url": "https://huggingface.co/robbyant/lingbot-world-v2-14b-causal-fast/resolve/5c33dd40b213598c418fd25bff30fdbd23fd38a7/google/umt5-xxl/special_tokens_map.json",
+      "sha256": "7b8a9f5040adb67b5805abdfd42c1f8d0f3d0e711f10726580eb3789cd0ad61d",
+      "bytes": 6623,
+      "license": "cc-by-nc-sa-4.0",
+      "source": "https://huggingface.co/robbyant/lingbot-world-v2-14b-causal-fast/tree/5c33dd40b213598c418fd25bff30fdbd23fd38a7",
+      "gated": false,
+      "original_content_match": true
+    },
+    {
+      "id": "lingbot14:google/umt5-xxl/spiece.model",
+      "category": "models",
+      "backbones": [
+        "lingbot14b",
+        "lingbot1.3b"
+      ],
+      "path": "models/lingbot14/google/umt5-xxl/spiece.model",
+      "url": "https://huggingface.co/robbyant/lingbot-world-v2-14b-causal-fast/resolve/5c33dd40b213598c418fd25bff30fdbd23fd38a7/google/umt5-xxl/spiece.model",
+      "sha256": "e3909a67b780650b35cf529ac782ad2b6b26e6d1f849d3fbb6a872905f452458",
+      "bytes": 4548313,
+      "license": "cc-by-nc-sa-4.0",
+      "source": "https://huggingface.co/robbyant/lingbot-world-v2-14b-causal-fast/tree/5c33dd40b213598c418fd25bff30fdbd23fd38a7",
+      "gated": false,
+      "original_content_match": true
+    },
+    {
+      "id": "lingbot14:google/umt5-xxl/tokenizer.json",
+      "category": "models",
+      "backbones": [
+        "lingbot14b",
+        "lingbot1.3b"
+      ],
+      "path": "models/lingbot14/google/umt5-xxl/tokenizer.json",
+      "url": "https://huggingface.co/robbyant/lingbot-world-v2-14b-causal-fast/resolve/5c33dd40b213598c418fd25bff30fdbd23fd38a7/google/umt5-xxl/tokenizer.json",
+      "sha256": "6e197b4d3dbd71da14b4eb255f4fa91c9c1f2068b20a2de2472967ca3d22602b",
+      "bytes": 16837417,
+      "license": "cc-by-nc-sa-4.0",
+      "source": "https://huggingface.co/robbyant/lingbot-world-v2-14b-causal-fast/tree/5c33dd40b213598c418fd25bff30fdbd23fd38a7",
+      "gated": false,
+      "original_content_match": true
+    },
+    {
+      "id": "lingbot14:google/umt5-xxl/tokenizer_config.json",
+      "category": "models",
+      "backbones": [
+        "lingbot14b",
+        "lingbot1.3b"
+      ],
+      "path": "models/lingbot14/google/umt5-xxl/tokenizer_config.json",
+      "url": "https://huggingface.co/robbyant/lingbot-world-v2-14b-causal-fast/resolve/5c33dd40b213598c418fd25bff30fdbd23fd38a7/google/umt5-xxl/tokenizer_config.json",
+      "sha256": "ed9a3a8b0faa71a70a32847e0435fe036e6e112d4df4edb7bb48a921e344dc05",
+      "bytes": 61728,
+      "license": "cc-by-nc-sa-4.0",
+      "source": "https://huggingface.co/robbyant/lingbot-world-v2-14b-causal-fast/tree/5c33dd40b213598c418fd25bff30fdbd23fd38a7",
+      "gated": false,
+      "original_content_match": true
+    },
+    {
+      "id": "lingbot14:models_t5_umt5-xxl-enc-bf16.pth",
+      "category": "models",
+      "backbones": [
+        "lingbot14b",
+        "lingbot1.3b"
+      ],
+      "path": "models/lingbot14/models_t5_umt5-xxl-enc-bf16.pth",
+      "url": "https://huggingface.co/robbyant/lingbot-world-v2-14b-causal-fast/resolve/5c33dd40b213598c418fd25bff30fdbd23fd38a7/models_t5_umt5-xxl-enc-bf16.pth",
+      "sha256": "7cace0da2b446bbbbc57d031ab6cf163a3d59b366da94e5afe36745b746fd81d",
+      "bytes": 11361920418,
+      "license": "cc-by-nc-sa-4.0",
+      "source": "https://huggingface.co/robbyant/lingbot-world-v2-14b-causal-fast/tree/5c33dd40b213598c418fd25bff30fdbd23fd38a7",
+      "gated": false,
+      "original_content_match": true
+    },
+    {
+      "id": "lingbot14:transformers/diffusion_pytorch_model.safetensors.index.json",
+      "category": "models",
+      "backbones": [
+        "lingbot14b"
+      ],
+      "path": "models/lingbot14/transformers/diffusion_pytorch_model.safetensors.index.json",
+      "url": "https://huggingface.co/robbyant/lingbot-world-v2-14b-causal-fast/resolve/5c33dd40b213598c418fd25bff30fdbd23fd38a7/transformers/diffusion_pytorch_model.safetensors.index.json",
+      "sha256": "5ff911c1a9b95baf3ad0e01f1aac32cdb46d1299aeff5a16b6bc112ddee76320",
+      "bytes": 102106,
+      "license": "cc-by-nc-sa-4.0",
+      "source": "https://huggingface.co/robbyant/lingbot-world-v2-14b-causal-fast/tree/5c33dd40b213598c418fd25bff30fdbd23fd38a7",
+      "gated": false,
+      "original_content_match": true
+    },
+    {
+      "id": "lingbot14:transformers/model-00001-of-00008.safetensors",
+      "category": "models",
+      "backbones": [
+        "lingbot14b"
+      ],
+      "path": "models/lingbot14/transformers/model-00001-of-00008.safetensors",
+      "url": "https://huggingface.co/robbyant/lingbot-world-v2-14b-causal-fast/resolve/5c33dd40b213598c418fd25bff30fdbd23fd38a7/transformers/model-00001-of-00008.safetensors",
+      "sha256": "81de15d940e763b9f2f50e0cde4f47b8dd8085660f529dd0a0409dfa03d0175c",
+      "bytes": 9312046483,
+      "license": "cc-by-nc-sa-4.0",
+      "source": "https://huggingface.co/robbyant/lingbot-world-v2-14b-causal-fast/tree/5c33dd40b213598c418fd25bff30fdbd23fd38a7",
+      "gated": false,
+      "original_content_match": true
+    },
+    {
+      "id": "lingbot14:transformers/model-00002-of-00008.safetensors",
+      "category": "models",
+      "backbones": [
+        "lingbot14b"
+      ],
+      "path": "models/lingbot14/transformers/model-00002-of-00008.safetensors",
+      "url": "https://huggingface.co/robbyant/lingbot-world-v2-14b-causal-fast/resolve/5c33dd40b213598c418fd25bff30fdbd23fd38a7/transformers/model-00002-of-00008.safetensors",
+      "sha256": "611e64ad2a6af9e6ef51ec59d09e6d84e23c41a9ab928808be415ed9def326c9",
+      "bytes": 9691794835,
+      "license": "cc-by-nc-sa-4.0",
+      "source": "https://huggingface.co/robbyant/lingbot-world-v2-14b-causal-fast/tree/5c33dd40b213598c418fd25bff30fdbd23fd38a7",
+      "gated": false,
+      "original_content_match": true
+    },
+    {
+      "id": "lingbot14:transformers/model-00003-of-00008.safetensors",
+      "category": "models",
+      "backbones": [
+        "lingbot14b"
+      ],
+      "path": "models/lingbot14/transformers/model-00003-of-00008.safetensors",
+      "url": "https://huggingface.co/robbyant/lingbot-world-v2-14b-causal-fast/resolve/5c33dd40b213598c418fd25bff30fdbd23fd38a7/transformers/model-00003-of-00008.safetensors",
+      "sha256": "930e9beab25729cf702be1f24a86ff80613101620b7c580458d0cdf4b6025767",
+      "bytes": 9335244395,
+      "license": "cc-by-nc-sa-4.0",
+      "source": "https://huggingface.co/robbyant/lingbot-world-v2-14b-causal-fast/tree/5c33dd40b213598c418fd25bff30fdbd23fd38a7",
+      "gated": false,
+      "original_content_match": true
+    },
+    {
+      "id": "lingbot14:transformers/model-00004-of-00008.safetensors",
+      "category": "models",
+      "backbones": [
+        "lingbot14b"
+      ],
+      "path": "models/lingbot14/transformers/model-00004-of-00008.safetensors",
+      "url": "https://huggingface.co/robbyant/lingbot-world-v2-14b-causal-fast/resolve/5c33dd40b213598c418fd25bff30fdbd23fd38a7/transformers/model-00004-of-00008.safetensors",
+      "sha256": "2e7c77bbd03b9f52bb4b3b06e4917f58df981621f183b400547b2e9685f80d25",
+      "bytes": 9335346804,
+      "license": "cc-by-nc-sa-4.0",
+      "source": "https://huggingface.co/robbyant/lingbot-world-v2-14b-causal-fast/tree/5c33dd40b213598c418fd25bff30fdbd23fd38a7",
+      "gated": false,
+      "original_content_match": true
+    },
+    {
+      "id": "lingbot14:transformers/model-00005-of-00008.safetensors",
+      "category": "models",
+      "backbones": [
+        "lingbot14b"
+      ],
+      "path": "models/lingbot14/transformers/model-00005-of-00008.safetensors",
+      "url": "https://huggingface.co/robbyant/lingbot-world-v2-14b-causal-fast/resolve/5c33dd40b213598c418fd25bff30fdbd23fd38a7/transformers/model-00005-of-00008.safetensors",
+      "sha256": "069547006233c60a4eeea66990a26bff1c37ea62622db63f1615c674eaac7ff2",
+      "bytes": 9440081514,
+      "license": "cc-by-nc-sa-4.0",
+      "source": "https://huggingface.co/robbyant/lingbot-world-v2-14b-causal-fast/tree/5c33dd40b213598c418fd25bff30fdbd23fd38a7",
+      "gated": false,
+      "original_content_match": true
+    },
+    {
+      "id": "lingbot14:transformers/model-00006-of-00008.safetensors",
+      "category": "models",
+      "backbones": [
+        "lingbot14b"
+      ],
+      "path": "models/lingbot14/transformers/model-00006-of-00008.safetensors",
+      "url": "https://huggingface.co/robbyant/lingbot-world-v2-14b-causal-fast/resolve/5c33dd40b213598c418fd25bff30fdbd23fd38a7/transformers/model-00006-of-00008.safetensors",
+      "sha256": "bf679e3b7898ca4de1ab45bf08323df679fa5475ce21d842ad713890ac6eaf0c",
+      "bytes": 9230407270,
+      "license": "cc-by-nc-sa-4.0",
+      "source": "https://huggingface.co/robbyant/lingbot-world-v2-14b-causal-fast/tree/5c33dd40b213598c418fd25bff30fdbd23fd38a7",
+      "gated": false,
+      "original_content_match": true
+    },
+    {
+      "id": "lingbot14:transformers/model-00007-of-00008.safetensors",
+      "category": "models",
+      "backbones": [
+        "lingbot14b"
+      ],
+      "path": "models/lingbot14/transformers/model-00007-of-00008.safetensors",
+      "url": "https://huggingface.co/robbyant/lingbot-world-v2-14b-causal-fast/resolve/5c33dd40b213598c418fd25bff30fdbd23fd38a7/transformers/model-00007-of-00008.safetensors",
+      "sha256": "89cda3cb5ba3d9617fa95a67c2a0dc6947a88d3b274f44057bc6f6bfaa88f15b",
+      "bytes": 9440081531,
+      "license": "cc-by-nc-sa-4.0",
+      "source": "https://huggingface.co/robbyant/lingbot-world-v2-14b-causal-fast/tree/5c33dd40b213598c418fd25bff30fdbd23fd38a7",
+      "gated": false,
+      "original_content_match": true
+    },
+    {
+      "id": "lingbot14:transformers/model-00008-of-00008.safetensors",
+      "category": "models",
+      "backbones": [
+        "lingbot14b"
+      ],
+      "path": "models/lingbot14/transformers/model-00008-of-00008.safetensors",
+      "url": "https://huggingface.co/robbyant/lingbot-world-v2-14b-causal-fast/resolve/5c33dd40b213598c418fd25bff30fdbd23fd38a7/transformers/model-00008-of-00008.safetensors",
+      "sha256": "a5cc8baed0c7ba171f1a0a5075320ba1ac41f5d53b26ca5dde8fa30bff57ef1e",
+      "bytes": 8392486660,
+      "license": "cc-by-nc-sa-4.0",
+      "source": "https://huggingface.co/robbyant/lingbot-world-v2-14b-causal-fast/tree/5c33dd40b213598c418fd25bff30fdbd23fd38a7",
+      "gated": false,
+      "original_content_match": true
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/audio_vae/diffusion_pytorch_model.safetensors",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/audio_vae/diffusion_pytorch_model.safetensors",
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/audio_vae/diffusion_pytorch_model.safetensors",
+      "sha256": "52c59e67ba8de5477c81bfbced0327aabf500f1bfdeefd5ee754529241cb26cb",
+      "bytes": 605429340,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "gated": true,
+      "original_content_match": true
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/text_encoder/model-00001-of-00014.safetensors",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/text_encoder/model-00001-of-00014.safetensors",
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/text_encoder/model-00001-of-00014.safetensors",
+      "sha256": "6b9dfbc930e505402ae9d7e5091a9d7d656cda5f34614f01cfe70bfb0cca27cb",
+      "bytes": 4932328944,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "gated": true,
+      "original_content_match": true
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/text_encoder/model-00002-of-00014.safetensors",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/text_encoder/model-00002-of-00014.safetensors",
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/text_encoder/model-00002-of-00014.safetensors",
+      "sha256": "d8bb44b4ff303fe76fe9e894022fb3dc71b15a2e716592790fe0e3c3e60478fa",
+      "bytes": 4875990528,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "gated": true,
+      "original_content_match": true
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/text_encoder/model-00003-of-00014.safetensors",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/text_encoder/model-00003-of-00014.safetensors",
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/text_encoder/model-00003-of-00014.safetensors",
+      "sha256": "54f22e8b3168f8dc962fac0d313607ebf52a12b433d4cf3098a0d82d9f042940",
+      "bytes": 4875990552,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "gated": true,
+      "original_content_match": true
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/text_encoder/model-00004-of-00014.safetensors",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/text_encoder/model-00004-of-00014.safetensors",
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/text_encoder/model-00004-of-00014.safetensors",
+      "sha256": "ad09c74d3c13ee29b5d0d84548fd8a3424a651564eaccd519946c296e59c557f",
+      "bytes": 4875990584,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "gated": true,
+      "original_content_match": true
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/text_encoder/model-00005-of-00014.safetensors",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/text_encoder/model-00005-of-00014.safetensors",
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/text_encoder/model-00005-of-00014.safetensors",
+      "sha256": "fc993c8a0e2a5b0570f383e1a95dc3a1281d1b224b6f3ee908f4827941e1dfc2",
+      "bytes": 4875990584,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "gated": true,
+      "original_content_match": true
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/text_encoder/model-00006-of-00014.safetensors",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/text_encoder/model-00006-of-00014.safetensors",
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/text_encoder/model-00006-of-00014.safetensors",
+      "sha256": "82f05620d1f718a90c362b221d6a184ff1a0f53301d706882d3df49695fa1974",
+      "bytes": 4875990584,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "gated": true,
+      "original_content_match": true
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/text_encoder/model-00007-of-00014.safetensors",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/text_encoder/model-00007-of-00014.safetensors",
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/text_encoder/model-00007-of-00014.safetensors",
+      "sha256": "fb91da8cb01ff4de3eef0eab1c3e769a734b3a1aafc61734068638a0d6c86934",
+      "bytes": 4875990584,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "gated": true,
+      "original_content_match": true
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/text_encoder/model-00008-of-00014.safetensors",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/text_encoder/model-00008-of-00014.safetensors",
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/text_encoder/model-00008-of-00014.safetensors",
+      "sha256": "431ca56535c8781944ce3801f5eb61c45531e853ecc5846d936ebaf4761b764f",
+      "bytes": 4875990584,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "gated": true,
+      "original_content_match": true
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/text_encoder/model-00009-of-00014.safetensors",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/text_encoder/model-00009-of-00014.safetensors",
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/text_encoder/model-00009-of-00014.safetensors",
+      "sha256": "3825e3f4302f4d2f7d76aa7430d2ce0864fde6b9e540a5806bf0d8e38e4d9f47",
+      "bytes": 4875990584,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "gated": true,
+      "original_content_match": true
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/text_encoder/model-00010-of-00014.safetensors",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/text_encoder/model-00010-of-00014.safetensors",
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/text_encoder/model-00010-of-00014.safetensors",
+      "sha256": "aded5a4d1d5e22dbd8b6f79266b6eb88c840411b09527c53917a1419ace22e2f",
+      "bytes": 4875990584,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "gated": true,
+      "original_content_match": true
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/text_encoder/model-00011-of-00014.safetensors",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/text_encoder/model-00011-of-00014.safetensors",
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/text_encoder/model-00011-of-00014.safetensors",
+      "sha256": "3820ffe8d8d6477f6fe8d614ef3c87abb264ee39accebf43a1507b970d80946f",
+      "bytes": 4875990584,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "gated": true,
+      "original_content_match": true
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/text_encoder/model-00012-of-00014.safetensors",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/text_encoder/model-00012-of-00014.safetensors",
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/text_encoder/model-00012-of-00014.safetensors",
+      "sha256": "05ad2d08ce71963121c9b03f1d9ec5d7641052f4b23c6c12b80d71065eb8e98e",
+      "bytes": 4875990584,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "gated": true,
+      "original_content_match": true
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/text_encoder/model-00013-of-00014.safetensors",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/text_encoder/model-00013-of-00014.safetensors",
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/text_encoder/model-00013-of-00014.safetensors",
+      "sha256": "b64f2289871261fdd1abbd3b78bcd66011b341de3dc8eeb2ed1a473ee7c8d95c",
+      "bytes": 4875990584,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "gated": true,
+      "original_content_match": true
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/text_encoder/model-00014-of-00014.safetensors",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/text_encoder/model-00014-of-00014.safetensors",
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/text_encoder/model-00014-of-00014.safetensors",
+      "sha256": "e45b6c9998c77ee5a6577f9f47bc76416c1d4d387169e50c4c9d3134ea51b13b",
+      "bytes": 3270697008,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "gated": true,
+      "original_content_match": true
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/transformer/diffusion_pytorch_model-00001-of-00014.safetensors",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/transformer/diffusion_pytorch_model-00001-of-00014.safetensors",
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/transformer/diffusion_pytorch_model-00001-of-00014.safetensors",
+      "sha256": "2d847200c45c09dd7f973c1b096663068408ef851ee0b3711d059b6dc5dcd028",
+      "bytes": 4825958704,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "gated": true,
+      "original_content_match": true
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/transformer/diffusion_pytorch_model-00002-of-00014.safetensors",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/transformer/diffusion_pytorch_model-00002-of-00014.safetensors",
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/transformer/diffusion_pytorch_model-00002-of-00014.safetensors",
+      "sha256": "2c4d362eddd2802180ac9c744849eb9ba8d9c8b984bdf9822cb02ed004b29184",
+      "bytes": 4702158032,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "gated": true,
+      "original_content_match": true
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/transformer/diffusion_pytorch_model-00003-of-00014.safetensors",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/transformer/diffusion_pytorch_model-00003-of-00014.safetensors",
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/transformer/diffusion_pytorch_model-00003-of-00014.safetensors",
+      "sha256": "949c5aafbbfa5654da730a6a7fafd75adb164d0857b095a30e8bb6d390887d69",
+      "bytes": 4933368192,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "gated": true,
+      "original_content_match": true
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/transformer/diffusion_pytorch_model-00004-of-00014.safetensors",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/transformer/diffusion_pytorch_model-00004-of-00014.safetensors",
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/transformer/diffusion_pytorch_model-00004-of-00014.safetensors",
+      "sha256": "eef7616790105ee839766bb2027203bf2c0d87c6aa038dca84145a8675f5ce28",
+      "bytes": 4567069608,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "gated": true,
+      "original_content_match": true
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/transformer/diffusion_pytorch_model-00005-of-00014.safetensors",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/transformer/diffusion_pytorch_model-00005-of-00014.safetensors",
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/transformer/diffusion_pytorch_model-00005-of-00014.safetensors",
+      "sha256": "43fdf42d638e8bc6745f713fae80c93bb301807a1a5ae7249344ce28e202a494",
+      "bytes": 4702158080,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "gated": true,
+      "original_content_match": true
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/transformer/diffusion_pytorch_model-00006-of-00014.safetensors",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/transformer/diffusion_pytorch_model-00006-of-00014.safetensors",
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/transformer/diffusion_pytorch_model-00006-of-00014.safetensors",
+      "sha256": "6442510b34d173653f0cce5c964b935395a8f7accf0b9cc0aa31aec59805239d",
+      "bytes": 4933368232,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "gated": true,
+      "original_content_match": true
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/transformer/diffusion_pytorch_model-00007-of-00014.safetensors",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/transformer/diffusion_pytorch_model-00007-of-00014.safetensors",
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/transformer/diffusion_pytorch_model-00007-of-00014.safetensors",
+      "sha256": "29f48f535c91dac76496ca821eeb16ca24bc4caf3f0cae8b920a89b1f966da6d",
+      "bytes": 4567069608,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "gated": true,
+      "original_content_match": true
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/transformer/diffusion_pytorch_model-00008-of-00014.safetensors",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/transformer/diffusion_pytorch_model-00008-of-00014.safetensors",
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/transformer/diffusion_pytorch_model-00008-of-00014.safetensors",
+      "sha256": "c711b096c764bd60f0b8b6ad49518bfab6d614fb788c725add8741c0674a4cd8",
+      "bytes": 4702158080,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "gated": true,
+      "original_content_match": true
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/transformer/diffusion_pytorch_model-00009-of-00014.safetensors",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/transformer/diffusion_pytorch_model-00009-of-00014.safetensors",
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/transformer/diffusion_pytorch_model-00009-of-00014.safetensors",
+      "sha256": "44428defe3976cbb87635ad200b958199e739986697cd29fdf27aeb7294b5944",
+      "bytes": 4933368232,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "gated": true,
+      "original_content_match": true
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/transformer/diffusion_pytorch_model-00010-of-00014.safetensors",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/transformer/diffusion_pytorch_model-00010-of-00014.safetensors",
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/transformer/diffusion_pytorch_model-00010-of-00014.safetensors",
+      "sha256": "3d44939c374c9da382e9c6877e1946adf7b84e08c7a881c068f228d6849411c9",
+      "bytes": 4567069608,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "gated": true,
+      "original_content_match": true
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/transformer/diffusion_pytorch_model-00011-of-00014.safetensors",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/transformer/diffusion_pytorch_model-00011-of-00014.safetensors",
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/transformer/diffusion_pytorch_model-00011-of-00014.safetensors",
+      "sha256": "224d24430b58127a5577721084e0e704a0e74ec96dd7c35bc6fc0994ebd87c33",
+      "bytes": 4702158080,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "gated": true,
+      "original_content_match": true
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/transformer/diffusion_pytorch_model-00012-of-00014.safetensors",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/transformer/diffusion_pytorch_model-00012-of-00014.safetensors",
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/transformer/diffusion_pytorch_model-00012-of-00014.safetensors",
+      "sha256": "48fa2bd8fe134eef565ab2464f1c2589a6657cba0d14283dfc06b532f8961f3c",
+      "bytes": 4933368232,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "gated": true,
+      "original_content_match": true
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/transformer/diffusion_pytorch_model-00013-of-00014.safetensors",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/transformer/diffusion_pytorch_model-00013-of-00014.safetensors",
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/transformer/diffusion_pytorch_model-00013-of-00014.safetensors",
+      "sha256": "be5b4b1809f9d546ffd4b3fcf41e5c1e02b819125caa6bc105c109b04c051bd3",
+      "bytes": 4567069608,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "gated": true,
+      "original_content_match": true
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/transformer/diffusion_pytorch_model-00014-of-00014.safetensors",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/transformer/diffusion_pytorch_model-00014-of-00014.safetensors",
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/transformer/diffusion_pytorch_model-00014-of-00014.safetensors",
+      "sha256": "8fbd5e6c1fb1df7ce988ca90f3d59e7610e465c7517e4b344eda4a214ba4b97d",
+      "bytes": 4644161920,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "gated": true,
+      "original_content_match": true
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/vae/diffusion_pytorch_model-00001-of-00003.safetensors",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/vae/diffusion_pytorch_model-00001-of-00003.safetensors",
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/vae/diffusion_pytorch_model-00001-of-00003.safetensors",
+      "sha256": "72f4c6be84ac0674f27398cde991dd9d719762f3952c4921aa66b2ce542f6374",
+      "bytes": 5061033024,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "gated": true,
+      "original_content_match": true
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/vae/diffusion_pytorch_model-00002-of-00003.safetensors",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/vae/diffusion_pytorch_model-00002-of-00003.safetensors",
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/vae/diffusion_pytorch_model-00002-of-00003.safetensors",
+      "sha256": "2e05e8bc23fa4071043e17fd242be8acd0685e781a43987432b2eae925be4198",
+      "bytes": 4955986528,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "gated": true,
+      "original_content_match": true
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/vae/diffusion_pytorch_model-00003-of-00003.safetensors",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/vae/diffusion_pytorch_model-00003-of-00003.safetensors",
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/vae/diffusion_pytorch_model-00003-of-00003.safetensors",
+      "sha256": "c05d6ac4b1a33de372799d708531da6320f6a3ce6d1ce6d895e770988e004a39",
+      "bytes": 398539336,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "gated": true,
+      "original_content_match": true
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-sgf-stage2-158f/ema.pt",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-sgf-stage2-158f/ema.pt",
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-sgf-stage2-158f/ema.pt",
+      "sha256": "fc36871ec0c81d85737352eabf10b151fe444d4bb0516828f7efca40790e11cb",
+      "bytes": 4150961218,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "gated": true,
+      "original_content_match": true
+    },
+    {
+      "id": "solar:support/h3_silence_153_158_170.safetensors",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/support/h3_silence_153_158_170.safetensors",
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/support/h3_silence_153_158_170.safetensors",
+      "sha256": "f2b1411a7e23593775dc74a0da390684637cf85de1c5cdda96e3d800454358da",
+      "bytes": 102968,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "gated": true,
+      "original_content_match": true
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-sgf-stage2-158f/COMPLETE.json",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-sgf-stage2-158f/COMPLETE.json",
+      "sha256": "18d513d17f33e9e37ae9da0a698b0ed59c4f4ffbba7d2e2c9b2e676d8dc7f3c4",
+      "bytes": 141,
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-sgf-stage2-158f/COMPLETE.json",
+      "gated": true,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "original_content_match": true,
+      "note": "Exact original run content required; server content must match this digest."
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-sgf-stage2-158f/LICENSE",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-sgf-stage2-158f/LICENSE",
+      "sha256": "59b99642b95ea21630e311198ddbfffbfe05aadba0c2f5d884cbdf4efcc90f44",
+      "bytes": 17604,
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-sgf-stage2-158f/LICENSE",
+      "gated": true,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "original_content_match": true,
+      "note": "Exact original run content required; server content must match this digest."
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-sgf-stage2-158f/NOTICE",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-sgf-stage2-158f/NOTICE",
+      "sha256": "2eafd01aa3044cc1548863579eea5797751f438ee12aa93b9ba9894804e70def",
+      "bytes": 300,
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-sgf-stage2-158f/NOTICE",
+      "gated": true,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "original_content_match": true,
+      "note": "Exact original run content required; server content must match this digest."
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-sgf-stage2-158f/checkpoint-manifest.json",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-sgf-stage2-158f/checkpoint-manifest.json",
+      "sha256": "21348b933440c1463ad80078c6b236677227f3ea9f60659fe7b5c6c7a3229737",
+      "bytes": 2106,
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-sgf-stage2-158f/checkpoint-manifest.json",
+      "gated": true,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "original_content_match": true,
+      "note": "Exact original run content required; server content must match this digest."
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-sgf-stage2-158f/release-manifest.json",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-sgf-stage2-158f/release-manifest.json",
+      "sha256": "44038484c2a76657dd82e41eda9ec8a83ce8727b93054daa833d95de5e5a8186",
+      "bytes": 911,
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-sgf-stage2-158f/release-manifest.json",
+      "gated": true,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "original_content_match": true,
+      "note": "Exact original run content required; server content must match this digest."
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-sgf-stage2-158f/release.json",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-sgf-stage2-158f/release.json",
+      "sha256": "3c496237f37c11c20628a762e0e921bc553766a2b97f953b7727b3e603c6a88f",
+      "bytes": 137,
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-sgf-stage2-158f/release.json",
+      "gated": true,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "original_content_match": true,
+      "note": "Exact original run content required; server content must match this digest."
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/.gitattributes",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/.gitattributes",
+      "sha256": "e48ce24c550bf9d182505544ba6fd4a105791afb26918e2406b16ee46016a5e5",
+      "bytes": 1645,
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/.gitattributes",
+      "gated": true,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "original_content_match": true,
+      "note": "Exact original run content required; server content must match this digest."
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/LICENSE",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/LICENSE",
+      "sha256": "59b99642b95ea21630e311198ddbfffbfe05aadba0c2f5d884cbdf4efcc90f44",
+      "bytes": 17604,
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/LICENSE",
+      "gated": true,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "original_content_match": true,
+      "note": "Exact original run content required; server content must match this digest."
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/NOTICE",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/NOTICE",
+      "sha256": "b4a38059f3351a6d2822e0d4f9c24df2de29ac69cf555830f56a6e5269e569a7",
+      "bytes": 121,
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/NOTICE",
+      "gated": true,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "original_content_match": true,
+      "note": "Exact original run content required; server content must match this digest."
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/README.md",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/README.md",
+      "sha256": "e049c44dad3d6a3937947a1a001cd26bc463677ae948ed36dc31aa364886b682",
+      "bytes": 38103,
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/README.md",
+      "gated": true,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "original_content_match": true,
+      "note": "Exact original run content required; server content must match this digest."
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/assets-manifest.json",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/assets-manifest.json",
+      "sha256": "c967a5c83ec19a4a697d9a79b21806ceef55cb09f4b7c8e3ea41067a2ba6dab8",
+      "bytes": 6394,
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/assets-manifest.json",
+      "gated": true,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "original_content_match": true,
+      "note": "Exact original run content required; server content must match this digest."
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/audio_scheduler/scheduler_config.json",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/audio_scheduler/scheduler_config.json",
+      "sha256": "804780f7133477067bd6bbfbc02dc8b3cf9feeb400f97c08f5b1d5f6cbab3840",
+      "bytes": 96,
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/audio_scheduler/scheduler_config.json",
+      "gated": true,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "original_content_match": true,
+      "note": "Exact original run content required; server content must match this digest."
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/audio_vae/config.json",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/audio_vae/config.json",
+      "sha256": "9a3c645ff892b376c6f5f4c8685964cd75474731af594ff058492a0000caabb6",
+      "bytes": 2271,
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/audio_vae/config.json",
+      "gated": true,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "original_content_match": true,
+      "note": "Exact original run content required; server content must match this digest."
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/model_index.json",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/model_index.json",
+      "sha256": "973b9530e9e6a5e8edb465d2fd79ec31147859bef54c38a29034cf25f0ff987a",
+      "bytes": 3136,
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/model_index.json",
+      "gated": true,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "original_content_match": true,
+      "note": "Exact original run content required; server content must match this digest."
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/modular_model_index.json",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/modular_model_index.json",
+      "sha256": "a2b6a210e482ffb78e613b553f570c44e101afce6741bd4ed91429d0559af031",
+      "bytes": 2935,
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/modular_model_index.json",
+      "gated": true,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "original_content_match": true,
+      "note": "Exact original run content required; server content must match this digest."
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/processor/chat_template.json",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/processor/chat_template.json",
+      "sha256": "5c72a170d2a4a1a3bc5adad2e689ae28138a9700e5b8c96c0266331e86c0acce",
+      "bytes": 5499,
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/processor/chat_template.json",
+      "gated": true,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "original_content_match": true,
+      "note": "Exact original run content required; server content must match this digest."
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/processor/merges.txt",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/processor/merges.txt",
+      "sha256": "599bab54075088774b1733fde865d5bd747cbcc7a547c5bc12610e874e26f5e3",
+      "bytes": 1671839,
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/processor/merges.txt",
+      "gated": true,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "original_content_match": true,
+      "note": "Exact original run content required; server content must match this digest."
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/processor/preprocessor_config.json",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/processor/preprocessor_config.json",
+      "sha256": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+      "bytes": 390,
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/processor/preprocessor_config.json",
+      "gated": true,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "original_content_match": true,
+      "note": "Exact original run content required; server content must match this digest."
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/processor/tokenizer.json",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/processor/tokenizer.json",
+      "sha256": "a5d85b6dcc535e6b93115a9ef287e6132fdbf30270da6218194ba742261173c7",
+      "bytes": 7032403,
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/processor/tokenizer.json",
+      "gated": true,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "original_content_match": true,
+      "note": "Exact original run content required; server content must match this digest."
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/processor/tokenizer_config.json",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/processor/tokenizer_config.json",
+      "sha256": "a07e942ac874baa13758de8d1fbdb186683cc03416b5589e1b6671c6b3057c68",
+      "bytes": 11003,
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/processor/tokenizer_config.json",
+      "gated": true,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "original_content_match": true,
+      "note": "Exact original run content required; server content must match this digest."
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/processor/video_preprocessor_config.json",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/processor/video_preprocessor_config.json",
+      "sha256": "7768af27c1fafa9cc9011c1dc20067e03f8915e03b63504550e11d5066986d13",
+      "bytes": 385,
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/processor/video_preprocessor_config.json",
+      "gated": true,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "original_content_match": true,
+      "note": "Exact original run content required; server content must match this digest."
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/processor/vocab.json",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/processor/vocab.json",
+      "sha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910",
+      "bytes": 2776833,
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/processor/vocab.json",
+      "gated": true,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "original_content_match": true,
+      "note": "Exact original run content required; server content must match this digest."
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/release.json",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/release.json",
+      "sha256": "36cc6805b70ba9c4ba92c5bfe891fe5857fc2a1f99c2f37d154d6c2b83f050a5",
+      "bytes": 217,
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/release.json",
+      "gated": true,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "original_content_match": true,
+      "note": "Exact original run content required; server content must match this digest."
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/scheduler/scheduler_config.json",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/scheduler/scheduler_config.json",
+      "sha256": "8fa6c3aa70dc9e691e1a6df899fd1b6f75f70481a27cee6e18a303817075c304",
+      "bytes": 97,
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/scheduler/scheduler_config.json",
+      "gated": true,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "original_content_match": true,
+      "note": "Exact original run content required; server content must match this digest."
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/text_encoder/chat_template.json",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/text_encoder/chat_template.json",
+      "sha256": "5c72a170d2a4a1a3bc5adad2e689ae28138a9700e5b8c96c0266331e86c0acce",
+      "bytes": 5499,
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/text_encoder/chat_template.json",
+      "gated": true,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "original_content_match": true,
+      "note": "Exact original run content required; server content must match this digest."
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/text_encoder/config.json",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/text_encoder/config.json",
+      "sha256": "d2dd0c60d01b9e195d9447c52da61c7302d28828524914c044d9c6e1b81d0427",
+      "bytes": 1474,
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/text_encoder/config.json",
+      "gated": true,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "original_content_match": true,
+      "note": "Exact original run content required; server content must match this digest."
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/text_encoder/merges.txt",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/text_encoder/merges.txt",
+      "sha256": "599bab54075088774b1733fde865d5bd747cbcc7a547c5bc12610e874e26f5e3",
+      "bytes": 1671839,
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/text_encoder/merges.txt",
+      "gated": true,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "original_content_match": true,
+      "note": "Exact original run content required; server content must match this digest."
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/text_encoder/model.safetensors.index.json",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/text_encoder/model.safetensors.index.json",
+      "sha256": "06c952c569285870b811989b794b9766493e280fb77fbcb957fc4e5fcf25403a",
+      "bytes": 97831,
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/text_encoder/model.safetensors.index.json",
+      "gated": true,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "original_content_match": true,
+      "note": "Exact original run content required; server content must match this digest."
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/text_encoder/preprocessor_config.json",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/text_encoder/preprocessor_config.json",
+      "sha256": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+      "bytes": 390,
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/text_encoder/preprocessor_config.json",
+      "gated": true,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "original_content_match": true,
+      "note": "Exact original run content required; server content must match this digest."
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/text_encoder/tokenizer.json",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/text_encoder/tokenizer.json",
+      "sha256": "a5d85b6dcc535e6b93115a9ef287e6132fdbf30270da6218194ba742261173c7",
+      "bytes": 7032403,
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/text_encoder/tokenizer.json",
+      "gated": true,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "original_content_match": true,
+      "note": "Exact original run content required; server content must match this digest."
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/text_encoder/tokenizer_config.json",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/text_encoder/tokenizer_config.json",
+      "sha256": "a07e942ac874baa13758de8d1fbdb186683cc03416b5589e1b6671c6b3057c68",
+      "bytes": 11003,
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/text_encoder/tokenizer_config.json",
+      "gated": true,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "original_content_match": true,
+      "note": "Exact original run content required; server content must match this digest."
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/text_encoder/video_preprocessor_config.json",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/text_encoder/video_preprocessor_config.json",
+      "sha256": "7768af27c1fafa9cc9011c1dc20067e03f8915e03b63504550e11d5066986d13",
+      "bytes": 385,
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/text_encoder/video_preprocessor_config.json",
+      "gated": true,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "original_content_match": true,
+      "note": "Exact original run content required; server content must match this digest."
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/text_encoder/vocab.json",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/text_encoder/vocab.json",
+      "sha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910",
+      "bytes": 2776833,
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/text_encoder/vocab.json",
+      "gated": true,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "original_content_match": true,
+      "note": "Exact original run content required; server content must match this digest."
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/tokenizer/merges.txt",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/tokenizer/merges.txt",
+      "sha256": "599bab54075088774b1733fde865d5bd747cbcc7a547c5bc12610e874e26f5e3",
+      "bytes": 1671839,
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/tokenizer/merges.txt",
+      "gated": true,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "original_content_match": true,
+      "note": "Exact original run content required; server content must match this digest."
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/tokenizer/tokenizer.json",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/tokenizer/tokenizer.json",
+      "sha256": "a5d85b6dcc535e6b93115a9ef287e6132fdbf30270da6218194ba742261173c7",
+      "bytes": 7032403,
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/tokenizer/tokenizer.json",
+      "gated": true,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "original_content_match": true,
+      "note": "Exact original run content required; server content must match this digest."
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/tokenizer/tokenizer_config.json",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/tokenizer/tokenizer_config.json",
+      "sha256": "a07e942ac874baa13758de8d1fbdb186683cc03416b5589e1b6671c6b3057c68",
+      "bytes": 11003,
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/tokenizer/tokenizer_config.json",
+      "gated": true,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "original_content_match": true,
+      "note": "Exact original run content required; server content must match this digest."
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/tokenizer/vocab.json",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/tokenizer/vocab.json",
+      "sha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910",
+      "bytes": 2776833,
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/tokenizer/vocab.json",
+      "gated": true,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "original_content_match": true,
+      "note": "Exact original run content required; server content must match this digest."
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/transformer/config.json",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/transformer/config.json",
+      "sha256": "74c11bff524336576096993cbfcdcdc2ef4fa2fa4409df693bdcbc6c666282ae",
+      "bytes": 546,
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/transformer/config.json",
+      "gated": true,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "original_content_match": true,
+      "note": "Exact original run content required; server content must match this digest."
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/transformer/diffusion_pytorch_model.safetensors.index.json",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/transformer/diffusion_pytorch_model.safetensors.index.json",
+      "sha256": "ac30a3b58963f2e735d493475fbb81853a5735ec947619648b3e045acda6783e",
+      "bytes": 64488,
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/transformer/diffusion_pytorch_model.safetensors.index.json",
+      "gated": true,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "original_content_match": true,
+      "note": "Exact original run content required; server content must match this digest."
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/vae/config.json",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/vae/config.json",
+      "sha256": "78f67deec3d63aae807f2bfe7154bc1e26f6372cb20b63265fcbae1b62bb5745",
+      "bytes": 2011,
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/vae/config.json",
+      "gated": true,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "original_content_match": true,
+      "note": "Exact original run content required; server content must match this digest."
+    },
+    {
+      "id": "solar:SolarWM-h3-33B-base/vae/diffusion_pytorch_model.safetensors.index.json",
+      "category": "models",
+      "backbones": [
+        "solarwm33b"
+      ],
+      "path": "models/solar/SolarWM-h3-33B-base/vae/diffusion_pytorch_model.safetensors.index.json",
+      "sha256": "15f6d44553c3c616b0dc999920aa784f92ecee7e4201f1f99ac405cfbf3061ca",
+      "bytes": 74228,
+      "url": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/resolve/711d516329b9eaa395888c6ca724e0567bd3bdcb/SolarWM-h3-33B-base/vae/diffusion_pytorch_model.safetensors.index.json",
+      "gated": true,
+      "license": "Gated upstream terms; authorization required",
+      "source": "https://huggingface.co/junchaoh-cs/SolarWM-H3-33B/tree/711d516329b9eaa395888c6ca724e0567bd3bdcb",
+      "original_content_match": true,
+      "note": "Exact original run content required; server content must match this digest."
+    },
+    {
+      "id": "orbia-manifest",
+      "category": "datasets",
+      "backbones": [
+        "lingbot1.3b",
+        "lingbot14b",
+        "solarwm33b"
+      ],
+      "path": "datasets/orbia/manifest.json",
+      "url": "https://huggingface.co/datasets/Orbia/Orbia/resolve/5edae28cca27eaed64a144882237ab70a539747e/manifest.json",
+      "sha256": "2b7dd965885db5138339811f3c858514ff4913757403b10d5b98a8e18a318218",
+      "bytes": 136186,
+      "gated": true,
+      "license": "CC-BY-NC-SA-4.0; gated access required",
+      "source": "https://huggingface.co/datasets/Orbia/Orbia/tree/5edae28cca27eaed64a144882237ab70a539747e"
+    },
+    {
+      "id": "vbench:clip_model/ViT-B-32.pt",
+      "category": "evaluator",
+      "backbones": [
+        "longlive1.3b"
+      ],
+      "path": "evaluator/vbench_cache/clip_model/ViT-B-32.pt",
+      "url": "https://openaipublic.azureedge.net/clip/models/40d365715913c9da98579312b702a82c18be219cc2a73407c4526f58eba950af/ViT-B-32.pt",
+      "sha256": "40d365715913c9da98579312b702a82c18be219cc2a73407c4526f58eba950af",
+      "bytes": null,
+      "license": "MIT",
+      "source": "https://openaipublic.azureedge.net/clip/models/40d365715913c9da98579312b702a82c18be219cc2a73407c4526f58eba950af/ViT-B-32.pt",
+      "note": "One of six verified weight files; incomplete evaluator asset closure."
+    },
+    {
+      "id": "vbench:clip_model/ViT-L-14.pt",
+      "category": "evaluator",
+      "backbones": [
+        "longlive1.3b"
+      ],
+      "path": "evaluator/vbench_cache/clip_model/ViT-L-14.pt",
+      "url": "https://openaipublic.azureedge.net/clip/models/b8cca3fd41ae0c99ba7e8951adf17d267cdb84cd88be6f7c2e0eca1737a03836/ViT-L-14.pt",
+      "sha256": "b8cca3fd41ae0c99ba7e8951adf17d267cdb84cd88be6f7c2e0eca1737a03836",
+      "bytes": null,
+      "license": "MIT",
+      "source": "https://openaipublic.azureedge.net/clip/models/b8cca3fd41ae0c99ba7e8951adf17d267cdb84cd88be6f7c2e0eca1737a03836/ViT-L-14.pt",
+      "note": "One of six verified weight files; incomplete evaluator asset closure."
+    },
+    {
+      "id": "vbench:dino_model/dino_vitbase16_pretrain.pth",
+      "category": "evaluator",
+      "backbones": [
+        "longlive1.3b"
+      ],
+      "path": "evaluator/vbench_cache/dino_model/dino_vitbase16_pretrain.pth",
+      "url": "https://dl.fbaipublicfiles.com/dino/dino_vitbase16_pretrain/dino_vitbase16_pretrain.pth",
+      "sha256": "bf34ad0f424b9029b593e8dc3ed553bf26e88bcba0d32bf3e62a6209cb64c85e",
+      "bytes": null,
+      "license": "Apache-2.0",
+      "source": "https://dl.fbaipublicfiles.com/dino/dino_vitbase16_pretrain/dino_vitbase16_pretrain.pth",
+      "note": "One of six verified weight files; incomplete evaluator asset closure."
+    },
+    {
+      "id": "vbench:amt_model/amt-s.pth",
+      "category": "evaluator",
+      "backbones": [
+        "longlive1.3b"
+      ],
+      "path": "evaluator/vbench_cache/amt_model/amt-s.pth",
+      "url": "https://huggingface.co/lalala125/AMT/resolve/31d0420ef7788f6dc22aad3445148705007141bb/amt-s.pth",
+      "sha256": "07e7e03405c213fe4405678db9b42d05671e48c56faf6a441b99bb0047d3cf77",
+      "bytes": null,
+      "license": "CC-BY-NC-SA-4.0",
+      "source": "https://huggingface.co/lalala125/AMT/resolve/31d0420ef7788f6dc22aad3445148705007141bb/amt-s.pth",
+      "note": "One of six verified weight files; incomplete evaluator asset closure."
+    },
+    {
+      "id": "vbench:pyiqa_model/musiq_spaq_ckpt-358bb6af.pth",
+      "category": "evaluator",
+      "backbones": [
+        "longlive1.3b"
+      ],
+      "path": "evaluator/vbench_cache/pyiqa_model/musiq_spaq_ckpt-358bb6af.pth",
+      "url": "https://github.com/chaofengc/IQA-PyTorch/releases/download/v0.1-weights/musiq_spaq_ckpt-358bb6af.pth",
+      "sha256": "358bb6af275e28ea56821d44fb55c6cb83645db11f394d3ad65b2d149965ab50",
+      "bytes": null,
+      "license": "CC-BY-NC-SA-4.0 (v0.1-weights release)",
+      "source": "https://github.com/chaofengc/IQA-PyTorch/releases/download/v0.1-weights/musiq_spaq_ckpt-358bb6af.pth",
+      "note": "One of six verified weight files; incomplete evaluator asset closure."
+    },
+    {
+      "id": "vbench:aesthetic_model/emb_reader/sa_0_4_vit_l_14_linear.pth",
+      "category": "evaluator",
+      "backbones": [
+        "longlive1.3b"
+      ],
+      "path": "evaluator/vbench_cache/aesthetic_model/emb_reader/sa_0_4_vit_l_14_linear.pth",
+      "url": "https://raw.githubusercontent.com/LAION-AI/aesthetic-predictor/6d122adad522ab246644d9dc1c6d7a3810ee255f/sa_0_4_vit_l_14_linear.pth",
+      "sha256": "2cd4e60f4f24ae3bcd57b847b13c1f3ba27edc28cc1a7f9ce74ee9f421243cba",
+      "bytes": null,
+      "license": "MIT",
+      "source": "https://raw.githubusercontent.com/LAION-AI/aesthetic-predictor/6d122adad522ab246644d9dc1c6d7a3810ee255f/sa_0_4_vit_l_14_linear.pth",
+      "note": "One of six verified weight files; incomplete evaluator asset closure."
+    }
+  ],
+  "manual_assets": [
+    {
+      "id": "longlive-inputs",
+      "category": "datasets",
+      "backbones": [
+        "longlive1.3b"
+      ],
+      "path": "datasets/longlive",
+      "required": [],
+      "reason": "Provide the original WorldAttention160 60s WA_001 prompt, conditioning and controls, plus original cohort/annotation for full VBench-Long evaluation. Exact public input release and per-file hashes are not recovered. A same-name directory alone is not verification."
+    },
+    {
+      "id": "orbia-inputs",
+      "category": "datasets",
+      "backbones": [
+        "lingbot1.3b",
+        "lingbot14b",
+        "solarwm33b"
+      ],
+      "path": "datasets/orbia",
+      "required": [],
+      "reason": "Provide authorized original ORBIA case images, controls, prompts and annotations under the original manifest layout. Pinned gated dataset public.tar.gz contains five long cases and does not establish availability of the selected short case. Full per-case hashes are not recovered; no subset substitution."
+    },
+    {
+      "id": "vbench-evaluator",
+      "category": "evaluator",
+      "backbones": [
+        "longlive1.3b"
+      ],
+      "path": "evaluator/VBench",
+      "required": [
+        "vbench2_beta_long/__init__.py"
+      ],
+      "reason": "Original evaluator inventory SHA f794912d3e91e67b61dfe2d9593c1b75e2d0a7224acccd08f047e354981d96c5 (239 files), entry SHA a4804167eab96e0911cf1fbdc54fb9e850e91195edae5dacf256b8b2fcb4869e. Configured official https://github.com/Vchitect/VBench at fd18b3d055cb0fc6f066ca90fe2c3c8cbb698490 has entry SHA dffceb201d9ba61aefc6c7a29d3ac885f0ff9c560fcedeb4085adb4656e541bf. Obtain exact original authorized evaluator and locked compatibility overlay; do not substitute this checkout. Evaluator runtime record is CPU_PREFLIGHT_READY_SCORING_NOT_RUN, Python 3.12.3, separate from generation. Full historical transitive closure not recovered.",
+      "known_files": {
+        "vbench2_beta_long/__init__.py": "a4804167eab96e0911cf1fbdc54fb9e850e91195edae5dacf256b8b2fcb4869e"
+      }
+    },
+    {
+      "id": "vbench-extra-weights",
+      "category": "evaluator",
+      "backbones": [
+        "longlive1.3b"
+      ],
+      "path": "evaluator/vbench_cache",
+      "required": [
+        "raft_model/models/raft-things.pth"
+      ],
+      "reason": "Six downloaded checkpoints are a subset. Original eight-checkpoint/two-Hub-tree closure (including RAFT, DINOv2 and DreamSim), versions, cache layout and hashes must be supplied; no metric replacement."
+    },
+    {
+      "id": "orbia-evaluator",
+      "category": "evaluator",
+      "backbones": [
+        "lingbot1.3b",
+        "lingbot14b",
+        "solarwm33b"
+      ],
+      "path": "evaluator/orbia",
+      "required": [],
+      "reason": "Original ORBIA code revision f7d8ddde3069a6d5ce75a87fa6b4fc896cc78a59 is recorded, but its exact public repository URL, evaluator environment, metric weights and complete source/file lock are not recovered. Provide authorized original evaluation implementation/dependencies with SHA inventory; no alternate evaluator is installed."
+    }
+  ],
+  "protected_files": {},
+  "evaluator_observed_environment": {
+    "torch": "2.14.0",
+    "torchvision": "0.29.0",
+    "dreamsim": "0.2.1",
+    "moviepy": "1.0.3",
+    "decord": "0.6.0",
+    "transformers": "4.57.6",
+    "timm": "1.0.29",
+    "peft": "0.16.0",
+    "av": "15.1.0",
+    "scikit-learn": "1.7.2",
+    "numpy": "2.5.3",
+    "Pillow": "11.3.0",
+    "opencv-python": "5.0.0.93",
+    "pyiqa": "0.1.16"
+  },
+  "limitations": [
+    "Generation package lists are observed key packages, not complete historical environment lockfiles. Python microversions and some build-tool pins are absent. Install known pins with --no-deps; unresolved transitive requirements remain MANUAL_REQUIRED.",
+    "Per-model external source requirements are listed in scripts/native_sources.json. Provide authorized files under DEPENDENCY_ROOT/<version>/<original package-relative path>. No file is copied into versions/.",
+    "Original loaders compile using original flags after native prerequisites are supplied. These scripts do not invoke JIT loaders or reconstruct missing build inputs.",
+    "FA3 LongLive wheel has a historical content lock; the other three historical FA3 binaries have no independently recovered historical hash. No vanilla FA3 substitution is installed."
+  ],
+  "backbone_source_notes": {
+    "longlive1.3b": {
+      "official_project": "https://github.com/NVlabs/LongLive",
+      "lock": "versions/longlive/configs/backbones/source_locks.json"
+    },
+    "lingbot1.3b": {
+      "official_project": "https://github.com/robbyant/lingbot-world-v2",
+      "lock": "versions/lingbot13/configs/backbones/source_locks.json"
+    },
+    "lingbot14b": {
+      "official_project": "https://github.com/robbyant/lingbot-world-v2",
+      "lock": "versions/h200_large/configs/backbones/source_locks.json"
+    },
+    "solarwm33b": {
+      "official_project": "https://github.com/Junchao-cs/SolarWM",
+      "revision": "ce1da4e7705391eda8eeda6016c0fd3f614b975e",
+      "lock": "versions/h200_large/configs/backbones/solarwm_source_lock.json"
+    }
+  },
+  "native_source_notes": {
+    "b01": "No verified public redistribution/download license; manually provide exact authorized archive/headers at requirements in scripts/native_sources.json. Do not replace with another attention library.",
+    "fa3": "https://github.com/Dao-AILab/flash-attention (Apache-2.0 upstream). Historical modified builds are external; upstream installation does not prove exact modified source/binary identity.",
+    "build": "Use original source loaders and their recorded toolkit/ABI/flags after authorized dependencies are available. No build entry is synthesized by the installation scripts."
+  },
+  "asset_license_sources": {
+    "CLIP": "https://github.com/openai/CLIP/blob/main/LICENSE",
+    "DINO": "https://github.com/facebookresearch/dino/blob/main/LICENSE",
+    "AMT": "https://huggingface.co/lalala125/AMT/tree/31d0420ef7788f6dc22aad3445148705007141bb",
+    "MUSIQ": "https://github.com/chaofengc/IQA-PyTorch/blob/e7837339f945191ebdaf157ed7feef622039218e/LICENSE",
+    "aesthetic": "https://github.com/LAION-AI/aesthetic-predictor/blob/6d122adad522ab246644d9dc1c6d7a3810ee255f/LICENSE"
+  }
+}
