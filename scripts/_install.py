@@ -239,7 +239,15 @@ def install_env_vars(base):
                 **{key: str(path) for key, path in paths.items()})
 
 
-def hardware_checks(env, report):
+def _gpu_backend():
+    from importlib.util import spec_from_file_location, module_from_spec
+    spec = spec_from_file_location("_draftkv_gpu_backend_install", ROOT / "scripts/gpu_backend.py")
+    module = module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def hardware_checks(env, report, portable=False, gpu_index=0):
     system = platform.system() + " " + platform.machine()
     report.item("PASS" if system == env["platform"] else "FAIL", "platform", system + "; required " + env["platform"])
     cuda_root = os.environ.get("CUDA_HOME") or os.environ.get("CUDA_PATH")
@@ -253,20 +261,25 @@ def hardware_checks(env, report):
             out = subprocess.check_output(command, text=True, stderr=subprocess.STDOUT)
             found = re.search(pattern, out)
             actual = found.group(1) if found else "unknown"
-            report.item("PASS" if actual == expected else "FAIL", command[0], f"{actual}; original {expected}")
+            # A portable installation is not a reproduction of the original
+            # profile host. Accept supported toolchains without rejecting
+            # the GPU merely because its nvcc/GCC versions differ.
+            supported = found is not None and actual != "unknown"
+            if command[0] == nvcc and found:
+                supported = tuple(map(int, actual.split("."))) >= (12, 0)
+            report.item("PASS" if (supported if portable else actual == expected) else "FAIL",
+                        command[0], f"{actual}; " +
+                        ("portable toolchain selection" if portable else f"original {expected}"))
         except (OSError, subprocess.CalledProcessError):
             report.item("MANUAL_REQUIRED", command[0], f"install original toolchain {expected} externally; no system changes are made")
-    try:
-        out = subprocess.check_output(["nvidia-smi", "--query-gpu=name,uuid,compute_cap,driver_version", "--format=csv,noheader"], text=True, stderr=subprocess.STDOUT)
-        rows = [line.strip() for line in out.splitlines() if line.strip()]
-        if not rows:
-            raise ValueError("no devices")
-        for row in rows:
-            parts = [p.strip() for p in row.split(",")]
-            report.item("PASS" if len(parts) == 4 and parts[2] == env["recorded_compute_capability"] else "MANUAL_REQUIRED",
-                        "GPU architecture/driver", row + "; original profile SM90, no compatibility patch is applied")
-    except (OSError, ValueError, subprocess.CalledProcessError):
-        report.item("NOT_CHECKED", "GPU architecture/driver", "nvidia-smi unavailable; no generation is run")
+    gpu = _gpu_backend().detect(gpu_index)
+    if gpu["detected"]:
+        report.item("PASS", "GPU architecture/driver",
+                    f'{gpu["name"]}, SM{gpu["compute_capability"]}, driver {gpu["driver_version"]}; '
+                    f'auto-selected {gpu["backend"].upper()} (no historical SM90 requirement)')
+    else:
+        report.item("NOT_CHECKED", "GPU detection",
+                    "nvidia-smi unavailable; default FA2 install selection")
     try:
         driver = ctypes.CDLL("libcuda.so.1")
         version = ctypes.c_int()
@@ -289,6 +302,7 @@ def hardware_checks(env, report):
                 if found and int(found.group(1)) >= 12080:
                     headers.append(str(p))
     report.item("PASS" if headers else "MANUAL_REQUIRED", "CUDA driver headers >=12.8", ", ".join(headers) or "provide original loader-visible SDK headers; nvcc and driver-header versions are separate")
+    return gpu["backend"]
 
 
 def receipt_is_override(name, env, effective):
@@ -301,7 +315,7 @@ def receipt_is_override(name, env, effective):
     return active.get(key) != original.get(key)
 
 
-def probe_python(python, env, report, base):
+def probe_python(python, env, report, base, attention_backend="fa3"):
     if not Path(python).is_file():
         report.item("FAIL", "environment Python", "missing; run setup_env.sh with a Python 3.10 interpreter")
         return
@@ -362,7 +376,10 @@ print(json.dumps(r))'''
             imports += ["imageio_ffmpeg"]
         if env.get("version_tree") == "h200_large" and portable_receipt.is_file():
             imports += ["transformers.models.qwen3_vl.modeling_qwen3_vl"]
-        imports += ["flash_attn_interface", "flash_attn_3._C"]
+        # FA3 is a Hopper-only component. Do not reject Blackwell/Ada/Ampere
+        # environments because an SM90-only extension is intentionally absent.
+        if attention_backend == "fa3":
+            imports += ["flash_attn_interface", "flash_attn_3._C"]
         result = subprocess.check_output([str(python), "-I", "-B", "-c", probe, json.dumps(list(expected_packages)), json.dumps(imports)],
                                          text=True, env=dict(install_env_vars(base), HF_HUB_OFFLINE="1", TRANSFORMERS_OFFLINE="1"), timeout=90)
         observed = json.loads(result.splitlines()[-1])
@@ -398,8 +415,9 @@ print(json.dumps(r))'''
                     "historical SHA-256 matched" if identical else
                     "historical source/binary hash not recovered; portable inference requires separate GPU validation"
                     if portable_verified else "original SHA-256 required")
-    if env.get("fa3_version"):
-        report.item("MANUAL_REQUIRED", "historical FA3 binary identity", "version 3.0.0b1 recorded; original independent binary hash not recovered for this backbone")
+    if env.get("fa3_version") and attention_backend == "fa3":
+        report.item("MANUAL_REQUIRED", "historical FA3 binary identity",
+                    "original Hopper-specific binary hash not recovered; current-reference FA3 build is distinct")
     checked = subprocess.run([str(python), "-I", "-B", "-m", "pip", "check"], capture_output=True, text=True, env=install_env_vars(base))
     report.item("PASS" if checked.returncode == 0 else "FAIL", "Python dependency closure", "pip check" + ("; missing/incompatible transitive packages require original version evidence" if checked.returncode else ""))
 
@@ -464,7 +482,8 @@ def setup(args, data, report, base):
             report.item("MANUAL_REQUIRED" if name in env["manual_distributions"] else "NOT_CHECKED", name, version)
         report.item("NOT_CHECKED", "setup selection", args.backbone + " -> " + str(base / "venv") + f"; Python {env['python']}, torch CUDA {env['torch_cuda']}, toolkit {env['compiler_cuda']}")
         return
-    hardware_checks(env, report)
+    hardware_checks(env, report, portable=getattr(args, "portable", False),
+                    gpu_index=getattr(args, "gpu", 0))
     if "FAIL" in report.statuses:
         return
     interpreter = shutil.which(args.python or "python3.10")
@@ -592,8 +611,9 @@ def setup(args, data, report, base):
             receipt.write_text(json.dumps(closure, sort_keys=True, indent=2)+"\n")
             report.item("PASS", "portable dependency closure",
                         "pip check passed, direct package pins preserved; recorded dependency receipt")
-        report.item("MANUAL_REQUIRED", "native FlashAttention and B01",
-                    "build via pinned source; checked by the subsequent native install stages")
+        report.item("NOT_CHECKED", "native attention and B01",
+                    "the bootstrap installs architecture-selected FA2/FA3 afterward; "
+                    "project B01 is a separate native build stage")
     else:
         report.item("MANUAL_REQUIRED", "unrecorded transitive dependencies",
                     "selected exact pins installed with --no-deps; historical transitive versions unknown")
@@ -605,6 +625,8 @@ def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("action", choices=("setup", "assets", "verify"))
     p.add_argument("--backbone", required=True, choices=tuple(data["environments"]))
+    p.add_argument("--gpu", type=int, default=0,
+                   help="physical GPU index for automatic SM90 FA3 / other-GPU FA2 selection")
     p.add_argument("--env-root", default=str(Path.home() / ".cache/draftkv-install"))
     p.add_argument("--asset-root", help="external models/datasets/evaluator root (required for asset preparation)")
     p.add_argument("--python", help="setup: original Python 3.10; verify: environment interpreter")
@@ -642,9 +664,9 @@ def main(argv=None):
             if args.action == "verify":
                 source_checks(data, report, external(args.dependency_root) if args.dependency_root else None,
                               env["version_tree"], backbone=args.backbone)
-                hardware_checks(env, report)
+                attention_backend = hardware_checks(env, report, gpu_index=getattr(args, "gpu", 0))
                 python = Path(args.python).expanduser() if args.python else base / "venv/bin/python"
-                probe_python(python, env, report, base)
+                probe_python(python, env, report, base, attention_backend=attention_backend)
                 if args.scope in ("draftkv", "benchmark"):
                     native_checks(env, external(args.native_root) if args.native_root else None, python, report)
                 if args.scope == "benchmark":

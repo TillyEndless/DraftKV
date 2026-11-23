@@ -129,7 +129,7 @@ class UserCLITests(unittest.TestCase):
 
     def test_install_requests_audited_portable_dependency_resolution(self):
         code=(cli.ROOT/"scripts/draftkv.py").read_text()
-        self.assertIn('"--python", args.python, "--portable"]', code)
+        self.assertIn('"--python", args.python, "--gpu", str(args.gpu), "--portable"]', code)
         helper=(cli.ROOT/"scripts/_install.py").read_text()
         self.assertIn('"--upgrade-strategy", "only-if-needed"', helper)
         self.assertIn('"pip", "check"', helper)
@@ -152,7 +152,10 @@ class UserCLITests(unittest.TestCase):
             launch.assert_not_called()
 
     def test_install_cannot_claim_success_if_fa3_compilation_disabled(self):
-        with patch.object(cli, "commands") as launch:
+        with patch.object(cli.gpu_backend, "detect",
+                          return_value={"backend": "fa3", "detected": True,
+                                        "compute_capability": "9.0"}), \
+             patch.object(cli, "commands") as launch:
             with self.assertRaisesRegex(ValueError, "requires FA3 compilation"):
                 cli.install(self.args_install("--dependency-root", str(self.home/"private"),
                                               "--no-build-fa3"))
@@ -325,11 +328,13 @@ class UserCLITests(unittest.TestCase):
                 data = dict(status="NEEDS_ORIGINAL_SOURCES",
                             unavailable_count=33)
                 with patch.object(cli, "setup_environment") as setup, \
+                     patch.object(cli, "bootstrap_attention", return_value={"selected_backend": "fa2"}) as fa, \
                      patch.object(cli, "download_assets") as assets, \
                      patch.object(cli, "commands",
                                   return_value=SimpleNamespace(stdout=json.dumps(data))) as native:
                     cli.bootstrap(args)
                     setup.assert_called_once_with(args)
+                    fa.assert_called_once_with(args)
                     assets.assert_called_once_with(args)
                     self.assertIn("--dry-run",
                         [str(x) for x in native.call_args.args[0]])
@@ -353,10 +358,12 @@ class UserCLITests(unittest.TestCase):
         data = dict(status="PARTIAL_PUBLIC_NATIVE_SOURCES_DOWNLOADED",
                     unavailable_count=33, source_hashes_verified=20)
         with patch.object(cli, "setup_environment"), \
+             patch.object(cli, "bootstrap_attention", return_value={"selected_backend": "fa2"}) as attention, \
              patch.object(cli, "download_assets") as download, \
              patch.object(cli, "commands",
                           return_value=SimpleNamespace(stdout=json.dumps(data))) as native:
             cli.bootstrap(args)
+            attention.assert_called_once_with(args)
             download.assert_called_once_with(args)
             self.assertIn("--download-available",
                           [str(x) for x in native.call_args.args[0]])

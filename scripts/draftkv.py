@@ -15,8 +15,14 @@ import sys
 import platform
 import tempfile
 import urllib.request
+import importlib.util
+import shutil
+from types import SimpleNamespace
 
 ROOT = Path(__file__).resolve().parents[1]
+_GPU_SPEC = importlib.util.spec_from_file_location("_draftkv_gpu_backend", ROOT / "scripts/gpu_backend.py")
+gpu_backend = importlib.util.module_from_spec(_GPU_SPEC)
+_GPU_SPEC.loader.exec_module(gpu_backend)
 BACKBONES = ("longlive1.3b", "lingbot1.3b", "lingbot14b", "solarwm33b")
 # Model-specific *portable* additions; these are not reconstructed historical pins.
 # In particular SolarWM uses Pillow 9.5.0 for Transformers 5.12's Qwen3VL
@@ -363,13 +369,102 @@ def download_assets(args):
     ), indent=2))
 
 
+def _cuda_toolkit_root(explicit=None):
+    """Use a caller-specified or discovered nvcc for Hopper FA3 builds."""
+    candidates = [explicit, os.environ.get("CUDA_HOME"), os.environ.get("CUDA_PATH")]
+    nvcc = shutil.which("nvcc")
+    if nvcc:
+        candidates.append(str(Path(nvcc).resolve().parents[1]))
+    candidates.extend(("/usr/local/cuda", "/usr/local/cuda-12.8",
+                       "/usr/local/cuda-12.6"))
+    for value in candidates:
+        if not value:
+            continue
+        root = Path(value).expanduser()
+        if root.is_absolute() and (root / "bin/nvcc").is_file():
+            return str(root.resolve())
+    raise ValueError("Hopper FA3 source build needs an installed CUDA toolkit "
+                     "with nvcc (set CUDA_HOME or --cuda-home)")
+
+
+def bootstrap_attention(args):
+    """Install model-native FA2; automatically build FA3 additionally on Hopper."""
+    base, python, _, fa3 = paths(args)
+    gpu = gpu_backend.detect(args.gpu)
+    backend = gpu["backend"]
+    if args.dry_run:
+        return dict(selected_backend=backend, gpu=gpu,
+                    fa2="PLAN_ONLY", fa3="PLAN_ONLY" if backend == "fa3" else "NOT_APPLICABLE",
+                    runtime_validation="NOT_EXECUTED")
+    require(python.is_file(), "model Python environment missing before attention install")
+    lock = pinned_official_fa2_wheel(args.backbone)
+    receipt = base / "native/attention-install.json"
+    if receipt.is_file():
+        previous = json.loads(receipt.read_text())
+        require(previous.get("selected_backend") == backend and
+                previous.get("fa2_sha256") == lock["sha256"] and
+                previous.get("backbone") == args.backbone,
+                "existing attention installation receipt disagrees with GPU or pinned FA2")
+        if backend == "fa3":
+            fa3_receipt = fa3 / "build-receipt.json"
+            require(fa3_receipt.is_file() and
+                    json.loads(fa3_receipt.read_text()).get("status") == "BUILT_AND_INSTALLED",
+                    "existing Hopper FA3 build receipt unavailable")
+        commands([python, "-m", "pip", "check"])
+        return dict(selected_backend=backend, gpu=gpu,
+                    fa2="REUSED_VERIFIED_INSTALL", fa3="REUSED" if backend == "fa3" else "NOT_APPLICABLE",
+                    runtime_validation="NOT_EXECUTED")
+    override = SimpleNamespace(backbone=args.backbone, fa2_wheel=None, fa2_sha256=None)
+    wheel, fa2_sha256 = obtain_fa2_wheel(override, python, base)
+    commands([python, "-m", "pip", "--require-virtualenv", "install", "--no-deps", wheel])
+    check = commands([python, "-B", "-c",
+        "import importlib.metadata as m,json; print(json.dumps({'version':m.version('flash-attn')}))"],
+        capture=True)
+    require(json.loads(check.stdout)["version"].split("+", 1)[0] == lock["version"],
+            "installed FA2 distribution differs from pinned upstream wheel")
+    commands([python, "-m", "pip", "check"])
+    if backend == "fa3":
+        cuda_home = _cuda_toolkit_root(args.cuda_home)
+        # The public Hopper source build needs pinned packaging/build tools;
+        # do not rely on whatever happens to be on the host Python path.
+        commands([python, "-m", "pip", "--require-virtualenv", "install",
+                  "--only-binary=:all:", "--index-url", "https://pypi.org/simple",
+                  "setuptools==84.0.0", "ninja==1.13.2"])
+        commands([python, "-m", "pip", "check"])
+        fa3.mkdir(parents=True, exist_ok=True)
+        fa3_receipt = fa3 / "build-receipt.json"
+        if not fa3_receipt.is_file():
+            commands([python, ROOT / "scripts/build_fa3.py",
+                      "--backbone", args.backbone, "--python", python,
+                      "--artifact-root", fa3, "--cuda-home", cuda_home,
+                      "--jobs", str(args.jobs), "--install"],
+                     env=env_for(python, cuda_home=cuda_home))
+        data = json.loads(fa3_receipt.read_text())
+        require(data.get("status") == "BUILT_AND_INSTALLED" and
+                data.get("backbone") == args.backbone,
+                "Hopper FA3 build did not produce its completed install receipt")
+    receipt.parent.mkdir(parents=True, exist_ok=True)
+    require(not receipt.exists() and not receipt.is_symlink(),
+            "refusing to overwrite existing attention install receipt")
+    receipt.write_text(json.dumps(dict(schema=1, backbone=args.backbone,
+                                       selected_backend=backend,
+                                       gpu=gpu, fa2_sha256=fa2_sha256,
+                                       fa3_installed=backend == "fa3",
+                                       runtime_validation="NOT_EXECUTED"),
+                                  indent=2) + "\n")
+    return dict(selected_backend=backend, gpu=gpu, fa2="INSTALLED",
+                fa3="BUILT_AND_INSTALLED" if backend == "fa3" else "NOT_APPLICABLE",
+                runtime_validation="NOT_EXECUTED")
+
+
 def bootstrap(args):
-    """Download the verified online environment and assets, not missing native sources."""
+    """Install the selected FA2/FA3 backend and available verified online assets."""
     setup_environment(args)
     if not args.dry_run:
         base, _, _, _ = paths(args)
         require((base / "portable-dependency-closure.json").is_file(),
                 "Python dependency resolution is incomplete; cannot report a prepared environment")
+    attention = bootstrap_attention(args)
     download_assets(args)
     # The public upstream subset is fetched without pretending that modified,
     # unredistributed B01/model sources have become available.
@@ -384,6 +479,7 @@ def bootstrap(args):
         backbone=args.backbone,
         env_root=str(external(args.env_root)),
         asset_root=str(external(args.asset_root)),
+        attention_backend=attention,
         native_sources=native["status"],
         native_sources_unavailable=native["unavailable_count"],
         native_sources_verified=native.get("source_hashes_verified", 0),
@@ -402,7 +498,8 @@ def setup_environment(args):
         return
     result = subprocess.run([str(ROOT / "scripts/setup_env.sh"),
                              "--backbone", args.backbone, "--env-root", args.env_root,
-                             "--python", args.python, "--portable"], check=False)
+                             "--python", args.python,
+                             "--gpu", str(getattr(args, "gpu", 0)), "--portable"], check=False)
     require(result.returncode in (0, 3) and python.is_file(),
             "base environment installation failed; inspect setup_env.sh report")
     # This stage does not claim FlashAttention native readiness or an E2E GPU run.
@@ -411,20 +508,31 @@ def setup_environment(args):
                           native_dependencies="NOT_INSTALLED"), indent=2))
 
 
+def should_build_fa3(args, gpu):
+    """Hopper SM90 receives FA3; other NVIDIA devices use FA2 only."""
+    if gpu["backend"] == "fa3":
+        require(args.build_fa3,
+                "Hopper requires FA3 compilation; --no-build-fa3 cannot be marked successful")
+        return True
+    return False
+
+
 def install(args):
     base, python, b01, fa3 = paths(args)
     require(Path(args.cuda_home).is_absolute(), "CUDA_HOME must be absolute")
+    gpu = gpu_backend.detect(args.gpu)
+    attention_backend = gpu["backend"]
     if args.dry_run:
         print(json.dumps(dict(status="PLAN_ONLY", backbone=args.backbone, base=str(base),
                               python=str(python), b01=str(b01), fa3=str(fa3),
                               cuda_home=args.cuda_home, asset_root=args.asset_root,
+                              gpu=gpu, selected_attention_backend=attention_backend,
                               gated_login_is_user_owned=True,
                               fresh_install_and_gpu_generation="NOT_VALIDATED"),
                          indent=2))
         return
     require(args.asset_root, "install requires --asset-root for model asset deployment")
-    require(args.build_fa3,
-            "complete installation requires FA3 compilation; --no-build-fa3 cannot be marked successful")
+    build_fa3 = should_build_fa3(args, gpu)
     # Validate the pinned official source or explicit user-provided binary
     # before changing the environment. Actual download follows Torch setup.
     if args.fa2_wheel is not None or args.fa2_sha256 is not None:
@@ -452,12 +560,14 @@ def install(args):
     # real installed model venv and fail on actual errors.
     installed = subprocess.run([str(ROOT / "scripts/setup_env.sh"),
         "--backbone", args.backbone, "--env-root", args.env_root,
-        "--python", args.python, "--portable"], check=False)
+        "--python", args.python, "--gpu", str(args.gpu), "--portable"], check=False)
     require(installed.returncode in (0, 3),
             "base environment installation failed; inspect setup_env.sh output")
     require(python.is_file(), "model venv missing after setup")
     headers = resolve_python_headers(python, args.python_dev_root)
     runtime_receipt = install_model_closure(args, python, base, headers)
+    runtime_receipt["gpu"] = gpu
+    runtime_receipt["selected_attention_backend"] = attention_backend
     environment = env_for(python, headers=headers, cuda_home=args.cuda_home)
     commands(native_cmd)
     if args.asset_root:
@@ -467,7 +577,9 @@ def install(args):
             # Authentication is handled by the configured Hugging Face account.
             # The assets helper auto-attempts gated downloads and reports 401/403.
             commands(argv)
-    if args.build_fa3:
+    if build_fa3:
+        # Hopper SM90 uses FA3; non-Hopper GPUs use the installed FA2
+        # without attempting to compile Hopper-only FA3.
         # Uses pinned upstream reference; does not claim historically modified
         # FA3 binary equivalence or permission to redistribute built artifacts.
         fa3.mkdir(parents=True, exist_ok=True)
@@ -503,7 +615,11 @@ def install(args):
         Path(folder).mkdir(parents=True, exist_ok=True)
     print(json.dumps(dict(status="INSTALLATION_COMPONENTS_PREPARED",
                           backbone=args.backbone, python=str(python),
-                          source_identity="fresh B01 + pinned upstream current-reference FA3",
+                          gpu=gpu, selected_attention_backend=attention_backend,
+                          flash_attention_2="INSTALLED_FOR_MODEL_NATIVE_DEPENDENCIES",
+                          flash_attention_3=("BUILT_FOR_HOPPER" if attention_backend == "fa3"
+                                             else "NOT_BUILT_ON_NON_HOPPER"),
+                          source_identity="fresh B01 + architecture-selected official attention backend",
                           video_generation="NOT_TESTED_BY_INSTALL_COMMAND"), indent=2))
 
 
@@ -670,10 +786,13 @@ def make_parser():
                            "public upstream files")
             c.add_argument("--python", default="python3.10", help="base Python 3.10")
             c.add_argument("--cuda-home", required=True)
+            c.add_argument("--gpu", type=int, default=0,
+                           help="physical GPU index for automatic FA3 (SM90) / FA2 selection")
             c.add_argument("--with-dataset", action="store_true")
             c.add_argument("--authorized-gated", action="store_true",
                            help="deprecated compatibility flag; HF login is used automatically")
-            c.add_argument("--build-fa3", action=argparse.BooleanOptionalAction, default=True)
+            c.add_argument("--build-fa3", action=argparse.BooleanOptionalAction, default=True,
+                           help="Hopper-only FA3 build; non-Hopper always skips FA3")
             c.add_argument("--jobs", type=int, default=4)
             c.add_argument("--fa2-wheel", help="optional offline/override ABI-matched FA2 wheel; "
                            "default: automatically download SHA-locked official release")
@@ -702,6 +821,12 @@ def make_parser():
     boot.add_argument("--env-root", default=str(Path.home() / ".cache/draftkv-install"))
     boot.add_argument("--asset-root", default=str(Path.home() / ".cache/draftkv/assets"))
     boot.add_argument("--python", default="python3.10")
+    boot.add_argument("--gpu", type=int, default=0,
+                      help="physical GPU index for attention backend detection")
+    boot.add_argument("--cuda-home",
+                      help="optional CUDA toolkit root for Hopper FA3 build; otherwise auto-detected")
+    boot.add_argument("--jobs", type=int, default=4,
+                      help="parallel jobs for the Hopper FA3 source build")
     boot.add_argument("--with-dataset", action="store_true",
                       help="also download verified online dataset assets; original cases may not be published")
     boot.add_argument("--dry-run", action="store_true")
@@ -716,6 +841,8 @@ def make_parser():
     environment.add_argument("--backbone", choices=BACKBONES, required=True)
     environment.add_argument("--env-root", default=str(Path.home() / ".cache/draftkv-install"))
     environment.add_argument("--python", default="python3.10")
+    environment.add_argument("--gpu", type=int, default=0,
+                             help="physical GPU index for attention backend detection")
     environment.add_argument("--dry-run", action="store_true")
     prep = sub.add_parser("prepare", help="prepare original authorized benchmark inputs")
     prep.add_argument("--backbone", choices=BACKBONES, required=True)

@@ -27,7 +27,7 @@ Historical full-resolution KV can reside in CPU memory while a compact Persisten
 
 ## Installation
 
-**Platform:** Linux x86_64 with NVIDIA H200 (SM90). The host must already have a working NVIDIA driver, CUDA toolkit/build toolchain, Python 3.10 with venv/pip, Git and curl. The network installer handles the model-specific Python packages and available model/data downloads; it is **not** a bare-metal OS or CUDA driver installer.
+**Platform:** Linux x86_64 with an NVIDIA CUDA GPU. The host must already have a working driver, compatible CUDA toolkit/build toolchain, Python 3.10 with venv/pip, Git and curl. The network installer handles the model-specific Python packages and available model/data downloads; it is **not** a bare-metal OS or CUDA driver installer.
 
 Clone the project:
 
@@ -54,11 +54,11 @@ deactivate
   --asset-root "$HOME/.cache/draftkv/assets" --with-dataset
 ```
 
-The environment step creates `~/.cache/draftkv-install/lingbot1.3b/venv/` with `python3.10 -m venv` and installs the pinned packages from online repositories. Activation is **optional**: DraftKV's CLI always selects the appropriate venv interpreter itself. The base environment step does not install native FlashAttention or build B01/FA3.
+The environment step creates `~/.cache/draftkv-install/lingbot1.3b/venv/` with `python3.10 -m venv` and installs the pinned packages from online repositories. Activation is **optional**: DraftKV's CLI always selects the appropriate venv interpreter itself. The base environment step does not install native FlashAttention or build B01/FA3. For the full native `install` stage, the installer detects the selected GPU (physical `--gpu` index, default `0`): **Hopper SM90 (H100/H200) selects FA3; other NVIDIA architectures (including RTX 5090/SM120) select FA2 and skip FA3 compilation**. FA2 remains a model-native dependency on Hopper. Streaming CG-Attention's own autotuning is unchanged; the selected installer backend is not a claim of completed GPU inference.
 
 ### One-command network bootstrap for all four Backbones
 
-For normal setup, the `bootstrap` command combines the environment and online asset stages, then fetches the exact byte-identical public native source subset. It uses your existing Hugging Face login or `HF_TOKEN`, verifies published SHA-256 hashes, and stores downloads outside the Git checkout.
+For normal setup, the `bootstrap` command combines the environment and online asset stages, **automatically installs FA2 on all GPUs and builds FA3 additionally on Hopper SM90**, then fetches the exact byte-identical public native source subset. It uses your existing Hugging Face login or `HF_TOKEN`, verifies published SHA-256 hashes, and stores downloads outside the Git checkout.
 
 **LongLive-1.3B**
 
@@ -98,7 +98,9 @@ By default, environments are stored in `~/.cache/draftkv-install/<backbone>/` an
 | Exact upstream native source files | Downloaded if the official file matches the original source lock |
 | Unpublished modified native/B01 source archives | **Not available online** |
 | Original ORBIA short-case inputs or unreleased evaluation inputs | **Not available online** |
-| FlashAttention/B01/FA3 full native build and video generation | **Not performed by `bootstrap`** |
+| FlashAttention-2 (all GPUs, model-native dependency) | Official pinned wheel automatically downloaded, verified and installed |
+| FlashAttention-3 (Hopper SM90 only) | Current-reference FA3 automatically built and installed from pinned upstream sources |
+| Project-specific B01 native build and video generation | **Not performed by `bootstrap`** |
 
 **Important:** A successful `bootstrap` means that online software packages and available assets have been prepared; it does **not** mean end-to-end video generation is ready. The original source-locked inference path still requires project-specific modified native files and verified input cases that currently have **no confirmed public download source**. The installer will not substitute similarly named upstream code or report E2E success without running a video. See [Native dependency requirements](docs/INSTALL.md#native-dependency-preflight) and [Quickstart](docs/QUICKSTART.md) for the remaining inference prerequisites.
 

@@ -1,8 +1,8 @@
 # Quickstart
 
-DraftKV provides four model-specific, source-verified online bootstrap commands. The supported native target is **Linux x86_64 with NVIDIA H200 (SM90)**, Python 3.10 and a compatible CUDA compiler/toolkit.
+DraftKV provides four model-specific, source-verified online bootstrap commands. The native installer targets **Linux x86_64 with an NVIDIA CUDA GPU**, Python 3.10 and a compatible CUDA compiler/toolkit. Hopper SM90 selects FA3; other architectures, including RTX 5090, select FA2.
 
-The host must already have its NVIDIA driver, CUDA toolkit/compiler, Python 3.10, Git and curl. Hugging Face access is taken from your existing account session or `HF_TOKEN`. No local FlashAttention wheel or manually assembled model directory is required for the **network bootstrap**.
+The host must already have its NVIDIA driver, CUDA toolkit/compiler, Python 3.10, Git and curl. Hugging Face access is taken from your existing account session or `HF_TOKEN`. No local FlashAttention wheel or manually assembled model directory is required for the **network bootstrap**. It downloads the official verified FA2 wheel for each model and builds current-reference FA3 additionally when Hopper SM90 is detected; project-specific B01 remains a separate stage.
 
 ## Clone
 
@@ -51,7 +51,7 @@ The source selector identifies SHA-verified public upstream files, downloads tho
 
 ## E2E inference boundary
 
-**Online bootstrap and E2E video generation are different stages.** A successful bootstrap confirms that pinned Python packages and available published assets have been prepared. It does not imply that custom native/B01 source archives, a complete original ORBIA short case or LongLive benchmark input, the B01 native build or a GPU video run is available.
+**Online bootstrap and E2E video generation are different stages.** A successful bootstrap confirms that pinned Python packages, the selected FA2/FA3 installation components, and available published assets have been prepared. It does not imply that custom native/B01 source archives, a complete original ORBIA short case or LongLive benchmark input, the B01 native build or a GPU video run is available.
 
 The full `install` / `prepare` / `run` workflow is source-locked and intentionally refuses missing originals. Once verified online releases exist for the remaining native and input files, they can be incorporated into the downloader without changing the scientific code.
 

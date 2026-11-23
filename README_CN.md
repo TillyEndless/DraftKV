@@ -27,7 +27,7 @@ DraftKV 包含三个核心模块：
 
 ## 安装
 
-**部署平台：** Linux x86_64 + NVIDIA H200（SM90）。宿主机需要已经安装可用的 NVIDIA 驱动、CUDA Toolkit/编译工具链、Python 3.10（含 venv/pip）、Git 和 curl。在线安装命令负责模型专属 Python 包、权重及可下载的数据资产，**不负责安装操作系统或 GPU 驱动**。
+**部署平台：** Linux x86_64 + NVIDIA CUDA GPU。宿主机需要已经安装可用的驱动、兼容的 CUDA Toolkit/编译工具链、Python 3.10（含 venv/pip）、Git 和 curl。在线安装命令负责模型专属 Python 包、权重及可下载的数据资产，**不负责安装操作系统或 GPU 驱动**。
 
 克隆仓库：
 
@@ -54,11 +54,11 @@ deactivate
   --asset-root "$HOME/.cache/draftkv/assets" --with-dataset
 ```
 
-第一步会通过 `python3.10 -m venv` 在 `~/.cache/draftkv-install/lingbot1.3b/venv/` 创建隔离环境，再通过在线软件包索引安装对应依赖。**激活环境不是必需的**：DraftKV CLI 会自动选择该 Backbone 对应的 venv Python。基础环境安装不包括 native FlashAttention 和 B01/FA3 编译。
+第一步会通过 `python3.10 -m venv` 在 `~/.cache/draftkv-install/lingbot1.3b/venv/` 创建隔离环境，再通过在线软件包索引安装对应依赖。**激活环境不是必需的**：DraftKV CLI 会自动选择该 Backbone 对应的 venv Python。基础环境安装不包括 native FlashAttention 和 B01/FA3 编译。正式原生 `install` 阶段会检测所选 GPU（物理编号 `--gpu`，默认 `0`）：**Hopper SM90（H100/H200）选择 FA3，其他 NVIDIA 架构（包括 RTX 5090/SM120）选择 FA2 并跳过 FA3 编译**。Hopper 上仍保留模型原生调用所需的 FA2 依赖。Streaming CG-Attention 的 autotune 不受修改；自动选择安装后端不代表已通过 GPU 推理验收。
 
 ### 四组 Backbone 的一键网络部署
 
-正常部署时，`bootstrap` 把环境安装与在线资产下载合并，并额外获取与原始 SHA-256 一致的公开 native 源码。安装器使用已有 Hugging Face 登录状态或 `HF_TOKEN`，校验公开文件哈希；所有缓存均在 Git 仓库之外。
+正常部署时，`bootstrap` 合并环境安装与在线资产下载，**自动为各类 GPU 安装 FA2，在 Hopper SM90 上额外编译并安装 FA3**，并获取与原始 SHA-256 一致的公开 native 源码。安装器使用已有 Hugging Face 登录状态或 `HF_TOKEN`，校验公开文件哈希；所有缓存均在 Git 仓库之外。
 
 **LongLive-1.3B**
 
@@ -98,7 +98,9 @@ deactivate
 | 与原始源码锁完全一致的上游 native 文件 | 从固定官方 Commit 自动下载 |
 | 未公开的定制 native / B01 源码归档 | **尚无可确认的在线来源** |
 | 原始 ORBIA 短案例或未发布的评测输入 | **尚无可确认的在线来源** |
-| 完整 FA2/B01/FA3 native 构建与视频生成 | **`bootstrap` 不会执行** |
+| FlashAttention-2（全部 GPU，模型原生依赖） | 自动下载并验证固定版本官方 wheel 后安装 |
+| FlashAttention-3（仅 Hopper SM90） | 从固定的官方源码构建并安装当前参考版本 |
+| 项目特定 B01 构建和完整视频生成 | **`bootstrap` 不会执行** |
 
 **重要：** `bootstrap` 成功代表在线 Python 环境和可获取资产准备完成，**不代表已经完成端到端视频生成部署**。原始推理路径仍需要部分尚无可信公开下载地址的定制 native 文件及可校验的原始输入案例。安装器不会用同名但哈希不同的上游文件替代，也不会在没有生成视频的情况下声称 E2E 成功。剩余前置条件见[原生依赖要求](docs/INSTALL.md#native-dependency-preflight)和[详细 Quickstart](docs/QUICKSTART.md)。
 
