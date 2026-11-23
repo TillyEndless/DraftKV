@@ -343,22 +343,52 @@ def inspect_native_dependencies(args):
 def download_assets(args):
     """Download all pinned online model assets using the caller's existing HF login."""
     root = external(args.asset_root)
-    selection = ["--models"]
-    if args.with_dataset:
-        selection.append("--datasets")
-    cmd = [ROOT / "scripts/prepare_assets.sh", "--backbone", args.backbone,
-           "--asset-root", str(root), *selection]
-    if args.dry_run:
-        cmd.append("--dry-run")
-    # The assets helper is network-first and uses HF_TOKEN / a standard HF login.
-    # Upstream access is managed by Hugging Face, not by a local confirmation flag.
-    commands(cmd)
+    # The low-level asset helper uses mutually exclusive category flags.
+    # Download categories individually and skip original inputs for which
+    # neither an upstream URL nor a verifiable content lock exists.
+    categories = ["--models", *(["--datasets"] if args.with_dataset else [])]
+    for category in categories:
+        cmd = [ROOT / "scripts/prepare_assets.sh", "--backbone", args.backbone,
+               "--asset-root", str(root), category, "--online-only"]
+        if args.dry_run:
+            cmd.append("--dry-run")
+        # HF_TOKEN and standard Hugging Face login are used automatically.
+        commands(cmd)
     print(json.dumps(dict(
         status="ASSET_DOWNLOAD_PLAN_ONLY" if args.dry_run else "PINNED_ONLINE_ASSETS_READY",
         backbone=args.backbone,
         asset_root=str(root),
         categories=["models", *(["datasets"] if args.with_dataset else [])],
         original_benchmark_inputs="SEPARATELY_REQUIRED",
+    ), indent=2))
+
+
+def bootstrap(args):
+    """Download the verified online environment and assets, not missing native sources."""
+    setup_environment(args)
+    if not args.dry_run:
+        base, _, _, _ = paths(args)
+        require((base / "portable-dependency-closure.json").is_file(),
+                "Python dependency resolution is incomplete; cannot report a prepared environment")
+    download_assets(args)
+    # The public upstream subset is fetched without pretending that modified,
+    # unredistributed B01/model sources have become available.
+    cmd = [sys.executable, ROOT / "scripts/provision_sources.py",
+           "--backbone", args.backbone, "--profile", "inference"]
+    cmd.append("--dry-run" if args.dry_run else "--download-available")
+    evidence = commands(cmd, capture=True)
+    native = json.loads(evidence.stdout)
+    print(json.dumps(dict(
+        status="NETWORK_BOOTSTRAP_PLAN_ONLY" if args.dry_run
+               else "ONLINE_ENVIRONMENT_AND_ASSETS_PREPARED",
+        backbone=args.backbone,
+        env_root=str(external(args.env_root)),
+        asset_root=str(external(args.asset_root)),
+        native_sources=native["status"],
+        native_sources_unavailable=native["unavailable_count"],
+        native_sources_verified=native.get("source_hashes_verified", 0),
+        original_input_cases="NOT_PROVISIONED",
+        end_to_end_generation="NOT_EXECUTED",
     ), indent=2))
 
 
@@ -666,6 +696,16 @@ def make_parser():
     native.add_argument("--dependency-cache", help="external verified upstream file cache")
     native.add_argument("--profile", choices=("inference", "full"), default="inference")
     native.add_argument("--dry-run", action="store_true")
+    boot = sub.add_parser("bootstrap",
+                          help="download pinned Python environment and available model/data assets from the network")
+    boot.add_argument("--backbone", choices=BACKBONES, required=True)
+    boot.add_argument("--env-root", default=str(Path.home() / ".cache/draftkv-install"))
+    boot.add_argument("--asset-root", default=str(Path.home() / ".cache/draftkv/assets"))
+    boot.add_argument("--python", default="python3.10")
+    boot.add_argument("--with-dataset", action="store_true",
+                      help="also download verified online dataset assets; original cases may not be published")
+    boot.add_argument("--dry-run", action="store_true")
+
     assets = sub.add_parser("assets", help="download SHA-locked model assets from Hugging Face")
     assets.add_argument("--backbone", choices=BACKBONES, required=True)
     assets.add_argument("--asset-root", required=True)
@@ -701,6 +741,8 @@ def main(argv=None):
             install(args)
         elif args.action == "native-deps":
             inspect_native_dependencies(args)
+        elif args.action == "bootstrap":
+            bootstrap(args)
         elif args.action == "assets":
             download_assets(args)
         elif args.action == "environment":

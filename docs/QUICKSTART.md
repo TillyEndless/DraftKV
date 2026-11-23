@@ -1,79 +1,58 @@
 # Quickstart
 
-The CLI supports four backbones: `longlive1.3b`, `lingbot1.3b`, `lingbot14b`, and `solarwm33b`. The examples below use **Linux x86_64, NVIDIA H200 (SM90), Python 3.10**, and LingBot-World 1.3B. Supply authorized original model checkpoints, datasets and native dependencies separately.
+DraftKV provides four model-specific, source-verified online bootstrap commands. The supported native target is **Linux x86_64 with NVIDIA H200 (SM90)**, Python 3.10 and a compatible CUDA compiler/toolkit.
 
-## 1. Clone and list models
+The host must already have its NVIDIA driver, CUDA toolkit/compiler, Python 3.10, Git and curl. Hugging Face access is taken from your existing account session or `HF_TOKEN`. No local FlashAttention wheel or manually assembled model directory is required for the **network bootstrap**.
+
+## Clone
 
 ```bash
 git clone https://github.com/TillyEndless/DraftKV-public.git
 cd DraftKV-public
-./scripts/draftkv.sh list
 ```
 
-## 2. Install
+## Online environment and assets
 
-Check the current model's source-locked native dependencies before starting a large installation:
+Run the command for the desired Backbone. `--with-dataset` also fetches any verified dataset files published online.
+
+**LongLive-1.3B**
+
+```bash
+./scripts/draftkv.sh bootstrap --backbone longlive1.3b --with-dataset
+```
+
+**LingBot-World 1.3B**
+
+```bash
+./scripts/draftkv.sh bootstrap --backbone lingbot1.3b --with-dataset
+```
+
+**LingBot-World 14B**
+
+```bash
+./scripts/draftkv.sh bootstrap --backbone lingbot14b --with-dataset
+```
+
+**SolarWM-33B**
+
+```bash
+./scripts/draftkv.sh bootstrap --backbone solarwm33b --with-dataset
+```
+
+Default storage is `~/.cache/draftkv-install/` for separate model environments and `~/.cache/draftkv/assets/` for checkpoints and online datasets. Use `--env-root` and `--asset-root` to choose a different external drive. Run the same command again to verify and reuse downloaded assets.
+
+## Check native-source availability
 
 ```bash
 ./scripts/draftkv.sh native-deps --backbone lingbot1.3b --dry-run
 ```
 
-Only byte-identical upstream files are fetched automatically. The installed source selection is smaller than the full historical inventory, but original modified native files that have no verifiable public source must still be supplied through `--dependency-root`. See [Native dependency preflight](INSTALL.md#native-dependency-preflight).
+The source selector identifies SHA-verified public upstream files, downloads those that are accessible and reports missing original modified files. These missing files cannot be replaced with similarly named upstream code. [Installation](INSTALL.md#native-dependency-preflight) documents the current per-Backbone source requirements.
 
-```bash
-./scripts/draftkv.sh install \
-  --backbone lingbot1.3b \
-  --python python3.10 \
-  --cuda-home /usr/local/cuda-12.6 \
-  --env-root ${HOME}/.cache/draftkv/envs \
-  --asset-root ${HOME}/.cache/draftkv/assets \
-  --dependency-root /path/to/authorized-native-sources \
-  --authorized-gated
-```
+## E2E inference boundary
 
-Use actual external paths and your own upstream access authorization. The installer **automatically fetches and SHA-256 verifies the official ABI-matched FlashAttention-2 wheel**; there is no need to download a wheel first. Supply `--fa2-wheel PATH --fa2-sha256 DIGEST` only for a verified offline override. It also provisions isolated environments, verifies restricted external sources and builds the required native components. For prerequisites, see [Installation](INSTALL.md).
+**Online bootstrap and E2E video generation are different stages.** A successful bootstrap confirms that pinned Python packages and available published assets have been prepared. It does not imply that custom native/B01 source archives, a complete original ORBIA short case or LongLive benchmark input, the B01 native build or a GPU video run is available.
 
-## 3. Prepare an input case
+The full `install` / `prepare` / `run` workflow is source-locked and intentionally refuses missing originals. Once verified online releases exist for the remaining native and input files, they can be incorporated into the downloader without changing the scientific code.
 
-```bash
-./scripts/draftkv.sh prepare \
-  --backbone lingbot1.3b \
-  --env-root ${HOME}/.cache/draftkv/envs \
-  --dataset-root /external/orbia \
-  --index /external/orbia/installed-files.json \
-  --index-sha256 REPLACE_WITH_ACTUAL_INDEX_SHA256 \
-  --case-id YOUR_ORBIA_CASE_ID \
-  --output /external/prepared/lingbot13
-```
-
-The ORBIA dataset, case and index must originate from an authorized original distribution. If its distribution lock is not shipped, add `--lock /external/orbia/orbia480.lock.json`. For LongLive, use the original text-to-video input protocol and its authorized WorldAttention manifest via `--manifest`.
-
-## 4. Optional native readiness check
-
-```bash
-./scripts/draftkv.sh run \
-  --backbone lingbot1.3b \
-  --env-root ${HOME}/.cache/draftkv/envs \
-  --asset-root ${HOME}/.cache/draftkv/assets \
-  --input /external/prepared/lingbot13/cases/YOUR_ORBIA_CASE_ID/request.json \
-  --output /external/runs/startup/native.mp4 \
-  --gpu 0 --profile off --startup-only
-```
-
-This compiles/imports the native extension only; it does not generate video. A completely idle GPU is not required, but sufficient CUDA memory is necessary.
-
-## 5. Generate video
-
-```bash
-./scripts/draftkv.sh run \
-  --backbone lingbot1.3b \
-  --env-root ${HOME}/.cache/draftkv/envs \
-  --asset-root ${HOME}/.cache/draftkv/assets \
-  --input /external/prepared/lingbot13/cases/YOUR_ORBIA_CASE_ID/request.json \
-  --output /external/runs/generation/native.mp4 \
-  --gpu 0 --profile off
-```
-
-Use a **fresh external output directory** for every run. Input plans must be source-verified original-schema requests; a raw photo or arbitrary prompt is not a substitute. `--profile summary` is an optional deployment diagnostic, explained in [Profiling](PROFILING.md).
-
-Use `./scripts/draftkv.sh install --help`, `prepare --help` or `run --help` for every supported option. External assets, environments, compiled binaries, caches and output videos should remain outside this repository.
+See [Installation](INSTALL.md) for requirements and [Profiling](PROFILING.md) for the distinction between native startup checks, generated videos and deployment diagnostics.

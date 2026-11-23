@@ -160,6 +160,27 @@ class VerifiedFetchTests(unittest.TestCase):
                                     backbone="lingbot1.3b", cache_root=self.cache)
         self.assertFalse((self.repo / "versions/lingbot13" / self.name).exists())
 
+    def test_download_available_uses_exact_online_sources_without_claiming_completion(self):
+        extra = {"version": "lingbot13",
+                 "path": "src/draftkv/vendor/backbones/lingbot14/custom.py",
+                 "sha256": "1" * 64}
+        self.legacy.append(extra)
+        self._commit_fixture()
+        with patch.object(provision, "urlopen",
+                          side_effect=lambda url, **kw: io.BytesIO(self.data)) as fetch:
+            result = provision.provision(self.repo, "lingbot13",
+                                         backbone="lingbot1.3b",
+                                         cache_root=self.cache, allow_partial=True)
+            self.assertEqual(result["status"], "PARTIAL_PUBLIC_NATIVE_SOURCES_DOWNLOADED")
+            self.assertEqual(result["unavailable_count"], 1)
+            self.assertEqual(result["source_hashes_verified"], 1)
+            self.assertEqual(result["installed_now"], 1)
+            self.assertEqual(fetch.call_count, 1)
+        self.assertTrue((self.repo / "versions/lingbot13" / self.name).is_file())
+        self.assertFalse((self.repo / "versions/lingbot13" / extra["path"]).exists())
+        self.assertFalse(subprocess.check_output(
+            ["git", "-C", str(self.repo), "status", "--porcelain"]))
+
     def test_missing_original_is_reported_before_any_network(self):
         extra = {"version": "lingbot13",
                  "path": "src/draftkv/vendor/backbones/lingbot14/custom.py",

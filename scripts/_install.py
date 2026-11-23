@@ -99,7 +99,7 @@ def hf_token():
     return token_path.read_text().strip() if token_path.is_file() else None
 
 
-def provision_file(asset, root, report, download=False, gated=False, dry=False):
+def provision_file(asset, root, report, download=False, gated=False, dry=False, online_only=False):
     path = child(root, asset["path"])
     if path.exists():
         if matches(path, asset):
@@ -167,6 +167,11 @@ def asset_checks(data, backbone, root, categories, report, **options):
             provision_file(asset, root, report, **options)
     for asset in data["manual_assets"]:
         if backbone in asset["backbones"] and asset["category"] in categories:
+            if options.get("online_only"):
+                report.item("SKIPPED", asset["id"],
+                            "original dataset/source has no verified online URL; "
+                            "not included in online-only asset bootstrap")
+                continue
             path = child(root, asset["path"])
             missing = [p for p in asset["required"] if not child(path, p).exists()]
             for relative, expected in asset.get("known_files", {}).items():
@@ -566,15 +571,27 @@ def setup(args, data, report, base):
             if name not in env["manual_distributions"] and final.get(package_key(name)) != version:
                 raise ValueError("portable pip resolver changed known pinned direct package: "+name)
         receipt = child(base, "portable-dependency-closure.json")
+        closure = dict(schema=1, scope="CURRENT_PORTABLE_ENVIRONMENT_NOT_HISTORICAL",
+                       installed_distributions=final, top_level_pins=selected_packages(env),
+                       portable_top_level_pins=packages,
+                       portable_compatibility_overrides=env.get("portable_overrides", {}))
         if receipt.exists():
-            raise ValueError("portable dependency receipt already exists; refuse overwrite")
-        receipt.write_text(json.dumps(dict(schema=1,scope="CURRENT_PORTABLE_ENVIRONMENT_NOT_HISTORICAL",
-            installed_distributions=final, top_level_pins=selected_packages(env),
-            portable_top_level_pins=packages,
-            portable_compatibility_overrides=env.get("portable_overrides", {})),
-            sort_keys=True,indent=2)+"\n")
-        report.item("PASS", "portable dependency closure",
-                    "pip check passed, direct package pins preserved; recorded dependency receipt")
+            if not receipt.is_file() or receipt.is_symlink():
+                raise ValueError("existing portable closure receipt is not a regular file")
+            earlier = json.loads(receipt.read_text())
+            # Installed transitive versions may grow (e.g. FA2 installed later).
+            # Retain the original immutable installation receipt, but only if
+            # current package pinning, ABI identity and profile still match.
+            for key in ("schema", "scope", "top_level_pins", "portable_top_level_pins",
+                        "portable_compatibility_overrides"):
+                if earlier.get(key) != closure[key]:
+                    raise ValueError("existing portable dependency receipt conflicts with current locks")
+            report.item("PASS", "portable dependency closure",
+                        "reused existing receipt after pip check and current direct-pin verification")
+        else:
+            receipt.write_text(json.dumps(closure, sort_keys=True, indent=2)+"\n")
+            report.item("PASS", "portable dependency closure",
+                        "pip check passed, direct package pins preserved; recorded dependency receipt")
         report.item("MANUAL_REQUIRED", "native FlashAttention and B01",
                     "build via pinned source; checked by the subsequent native install stages")
     else:
@@ -599,6 +616,8 @@ def main(argv=None):
     p.add_argument("--dry-run", action="store_true", help="display selection only; no readiness claim or downloads")
     p.add_argument("--portable", action="store_true",
                    help="setup only: resolve transitive deps in an isolated fresh environment and audit final pins; not historical identity")
+    p.add_argument("--online-only", action="store_true",
+                   help="assets only: download available verified URLs; report non-public original case inputs as skipped")
     p.add_argument("--authorized-gated", action="store_true",
                    help="deprecated: asset downloads already use existing Hugging Face login/HF_TOKEN")
     selection = p.add_mutually_exclusive_group()
@@ -609,6 +628,8 @@ def main(argv=None):
         p.error("--scope is valid only for verify_install.sh")
     if args.portable and args.action != "setup":
         p.error("--portable is valid only for environment setup")
+    if args.online_only and args.action != "assets":
+        p.error("--online-only is valid only for asset preparation")
     if args.action == "assets" and (not args.asset_root or not any(getattr(args, k) for k in ("all", "models", "datasets", "evaluator"))):
         p.error("prepare_assets requires --asset-root and --all/--models/--datasets/--evaluator")
     report = Report()
@@ -635,7 +656,7 @@ def main(argv=None):
                 asset_checks(data, args.backbone, external(args.asset_root), categories, report,
                              download=args.action == "assets",
                              gated=(args.action == "assets" or args.authorized_gated),
-                             dry=args.dry_run)
+                             dry=args.dry_run, online_only=args.online_only)
             else:
                 report.item("MANUAL_REQUIRED", "assets", "provide --asset-root; no source-tree files are downloaded")
     except (OSError, ValueError, subprocess.SubprocessError) as exc:

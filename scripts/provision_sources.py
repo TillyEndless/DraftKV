@@ -137,7 +137,8 @@ def _download(online, cache_root):
 
 
 def provision(repo, version, source=None, dry_run=False, *, backbone=None,
-              profile="inference", cache_root=None, require_available=False):
+              profile="inference", cache_root=None, require_available=False,
+              allow_partial=False):
     repo = Path(repo).resolve()
     require((repo / ".git").exists(),
             "a Git clone with private .git/info/exclude is required")
@@ -166,17 +167,18 @@ def provision(repo, version, source=None, dry_run=False, *, backbone=None,
             raise ValueError("unavailable native-source dependencies (" +
                              str(len(missing)) + "): " + ", ".join(missing[:6]))
         return summary
-    require(not missing,
-            "unavailable native-source dependencies (" + str(len(missing)) +
-            "): " + ", ".join(missing[:6]) +
-            "; inspect with --dry-run or provide original authorized --dependency-root")
+    if not allow_partial:
+        require(not missing,
+                "unavailable native-source dependencies (" + str(len(missing)) +
+                "): " + ", ".join(missing[:6]) +
+                "; inspect with --dry-run or provide original authorized --dependency-root")
     tracked = set(subprocess.check_output(
         ["git", "-C", str(repo), "ls-files", "-z"]).decode().split("\0"))
     actions = []
     for item, status, local in plan:
         name = str(Path("versions") / version / item["path"])
         dest = repo / name
-        if status == "installed":
+        if status in ("installed", "unavailable"):
             continue
         require(name not in tracked and not dest.exists() and not dest.is_symlink(),
                 "native source would overwrite a tracked/frozen file: " + name)
@@ -211,8 +213,11 @@ def provision(repo, version, source=None, dry_run=False, *, backbone=None,
     require(not subprocess.check_output(
         ["git", "-C", str(repo), "status", "--porcelain"], text=True),
         "Git checkout became dirty after private dependency provisioning")
-    return {**summary, "status": "AUTHORIZED_NATIVE_SOURCES_READY",
-            "source_hashes_verified": len(plan), "git_clean": True,
+    return {**summary,
+            "status": "PARTIAL_PUBLIC_NATIVE_SOURCES_DOWNLOADED"
+                      if missing else "AUTHORIZED_NATIVE_SOURCES_READY",
+            "source_hashes_verified": len(plan) - len(missing),
+            "git_clean": True,
             "installed_now": len(actions)}
 
 
@@ -226,12 +231,15 @@ def main(argv=None):
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--require-available", action="store_true",
                         help="preflight: fail early if source-locked files are unavailable")
+    parser.add_argument("--download-available", action="store_true",
+                        help="install exact publicly downloadable originals; report other originals as missing")
     args = parser.parse_args(argv)
     try:
         result = provision(REPO, VERSIONS[args.backbone], args.dependency_root,
                            dry_run=args.dry_run, backbone=args.backbone,
                            profile=args.profile, cache_root=args.cache_root,
-                           require_available=args.require_available)
+                           require_available=args.require_available,
+                           allow_partial=args.download_available)
         print(json.dumps(result, indent=2))
         return 0
     except (OSError, KeyError, TypeError, ValueError,

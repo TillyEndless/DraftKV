@@ -1,72 +1,87 @@
 # Installation
 
+DraftKV supports four model-specific Python environments and source-verified network asset downloads. This guide separates **online bootstrap** from **end-to-end inference**, because not every original native source and benchmark input is publicly available.
+
 ## Requirements
 
-- Linux x86_64 and NVIDIA Hopper H200 (SM90) for the currently supported native deployment path.
-- Python 3.10 with `venv`/pip, compatible CPython development headers (`Python.h`, `pyconfig.h`), a C++ toolchain, Ninja, an NVIDIA driver and a matching CUDA toolkit.
-- User-authorized original model weights and native dependencies, plus the dataset inputs required by the chosen model.
-- Network access to the official FlashAttention GitHub release (the installer automatically downloads a SHA-256-pinned FA2 wheel matching the selected Python/PyTorch/C++ ABI), plus a working CUDA toolchain for pinned FA3 and B01. For offline environments, provide an authorized ABI-compatible wheel with `--fa2-wheel` and `--fa2-sha256`.
+- Linux x86_64, NVIDIA H200 (SM90), compatible NVIDIA driver and CUDA toolkit/compiler.
+- Python 3.10 with `venv` and `pip`, Git, curl, sufficient disk space for the selected model and dataset.
+- Network access to PyPI, PyTorch wheel indices, official upstream GitHub commits and Hugging Face.
+- For gated Hugging Face assets, an existing user-approved Hugging Face login or `HF_TOKEN`. The installer neither requests nor bypasses access permission.
 
-Keep environments, model assets, native source archives, caches and generated files **outside** the source checkout. Different backbones have different pinned Python/PyTorch/CUDA dependencies: do not put them all in one virtual environment. The [installation manifest](../scripts/install_manifest.json) defines the dependency versions and available asset sources.
+This installer does not provision the operating system, system CUDA toolkit or GPU driver.
 
-## Install a backbone
+## Network bootstrap by Backbone
 
-Choose a model from `./scripts/draftkv.sh list`; this example uses LingBot-World 1.3B:
+Clone the repository and select **one** of the commands below:
 
 ```bash
-./scripts/draftkv.sh install \
-  --backbone lingbot1.3b \
-  --python python3.10 \
-  --cuda-home /usr/local/cuda-12.6 \
-  --env-root ${HOME}/.cache/draftkv/envs \
-  --asset-root ${HOME}/.cache/draftkv/assets \
-  --dependency-root /path/to/authorized-native-sources \
-  --authorized-gated
+git clone https://github.com/TillyEndless/DraftKV-public.git
+cd DraftKV-public
 ```
 
-If the system Python 3.10 development headers are not available, add `--python-dev-root /path/to/python3.10/includes`. FlashAttention-2 is downloaded from an official pinned release URL, verified against its SHA-256 and exact size, cached outside the source tree, and installed into the model environment. No manual wheel path is required. Optional offline override: `--fa2-wheel /path/to/matching.whl --fa2-sha256 ACTUAL_SHA256`. `--authorized-gated` requires independently granted upstream access; `--with-dataset` installs dataset assets when needed. `--jobs N` adjusts native build parallelism, and `--dry-run` inspects the selection without installing.
+| Backbone | CLI name |
+| --- | --- |
+| LongLive-1.3B | `longlive1.3b` |
+| LingBot-World 1.3B | `lingbot1.3b` |
+| LingBot-World 14B | `lingbot14b` |
+| SolarWM-33B | `solarwm33b` |
 
-The installer checks the [external dependency hashes](../EXTERNAL_DEPENDENCY_SHA256.json) and uses authorized sources from `--dependency-root`; it never fetches restricted third-party archives for you. The pinned FA3 build uses separately verified reference sources. Model assets may require upstream authentication, manual approval or third-party license compliance.
+### LongLive-1.3B
+
+```bash
+./scripts/draftkv.sh bootstrap --backbone longlive1.3b --with-dataset
+```
+
+### LingBot-World 1.3B
+
+```bash
+./scripts/draftkv.sh bootstrap --backbone lingbot1.3b --with-dataset
+```
+
+### LingBot-World 14B
+
+```bash
+./scripts/draftkv.sh bootstrap --backbone lingbot14b --with-dataset
+```
+
+### SolarWM-33B
+
+```bash
+./scripts/draftkv.sh bootstrap --backbone solarwm33b --with-dataset
+```
+
+The bootstrap installs pinned Python/PyTorch packages from online package repositories, downloads and verifies model weights and published dataset assets, and fetches byte-identical public native sources from pinned original upstream commits. The optional dataset flag downloads **only published, checksum-verifiable assets**.
+
+Default storage: `~/.cache/draftkv-install/<backbone>/` for isolated environments, `~/.cache/draftkv/assets/` for online model/data files. Set `--env-root` and `--asset-root` to different external locations if more space is needed. An interrupted download can be resumed where the server permits; verified asset files are reused.
 
 ## Native dependency preflight
 
-Each model uses a compact, **SHA-256-equivalent** view of the original external source inventory. The archived `EXTERNAL_DEPENDENCY_SHA256.json` (500 records) is retained unchanged for the frozen original launchers; `scripts/native_sources.json` selects only the relevant source-lock files and records verified upstream URLs for byte-identical source files.
+The original source integrity locks are preserved without modification. The compact [per-Backbone source selector](../scripts/native_sources.json) references fixed official Git commits when their exact bytes match the original files. A source file with a different SHA-256 cannot replace a DraftKV-modified counterpart.
 
-| Backbone | Native source-lock files selected (SM90 inference) | Verified upstream downloads | Remaining original-only files |
-|---|---:|---:|---:|
+| Backbone | Original native files selected for SM90 | Verified public upstream files | Original files without a verified URL |
+| --- | ---: | ---: | ---: |
 | LongLive-1.3B | 49 | 28 | 21 |
 | LingBot-World 1.3B | 53 | 20 | 33 |
 | LingBot-World 14B | 53 | 20 | 33 |
 | SolarWM-33B | 4 | 0 | 4 |
 
+To see exactly what is available and missing:
+
 ```bash
 ./scripts/draftkv.sh native-deps --backbone lingbot1.3b --dry-run
 ```
 
-`--profile inference` (default) excludes unrelated model families and SM120 headers on H200; `--profile full` includes the complete 100-entry legacy closure for the selected source version. Some apparently optional training/profiling files remain in the source-lock group because the immutable original planner audits the complete original model tree. The B01 evidence archive also remains necessary for the original B01 source integrity check. **No frozen scientific source, hash or native ABI is modified by this selection.**
+These counts describe the current frozen source-lock inventory, not the model weights. The full 500-row `EXTERNAL_DEPENDENCY_SHA256.json` is retained for original launcher compatibility. The per-Backbone selector omits unrelated model-source families and SM120 headers when targeting H200, but keeps any helper files referenced by complete original model source locks. B01 integrity verification also requires the original evidence archive.
 
-The downloader fetches only publicly available files that were verified byte-for-byte against a fixed upstream Git commit and the original SHA-256. If any original-only file is absent, `install` fails **before** downloading heavy packages or model weights and identifies the missing files. Provide those exact originals with `--dependency-root /path/to/original-source-tree` (version-prefixed layout); a similar upstream file or a different CUDA kernel is not an acceptable replacement. SolarWM also requires its separate original native model source at inference time.
+## What bootstrap does not provide
 
-## Verify dependencies
+The original modified native sources, custom B01 archives, some SolarWM native code and complete ORBIA short-case / LongLive benchmark inputs have no confirmed byte-identical public download locations. The online bootstrap **does not** reconstruct these files, build the original B01/FA3 runtime, or generate a video. The separate `install` / `prepare` / `run` commands remain available when the required source-locked originals and input cases are accessible; they must not be presented as a working zero-input network-only pipeline.
 
-```bash
-./scripts/verify_install.sh \
-  --backbone lingbot1.3b \
-  --env-root ${HOME}/.cache/draftkv/envs \
-  --asset-root ${HOME}/.cache/draftkv/assets \
-  --scope inference
-```
+The bootstrap output explicitly reports `native_sources_unavailable` and `end_to_end_generation: NOT_EXECUTED`. A future complete E2E release would require verified online distribution of the missing native source identities and benchmark inputs, followed by a new actual H200 run.
 
-Use `--scope draftkv` for native dependencies, and `--scope benchmark` when datasets and evaluators are required. Incomplete or unauthorized dependencies are reported rather than replaced with unverified versions. A package/import check is not itself a GPU generation test.
+## Further Reading
 
-## Input and execution
-
-Use the [Quickstart](QUICKSTART.md) to prepare authorized ORBIA or WorldAttention inputs and run `./scripts/draftkv.sh run`. The portable runner needs a verified prepared request or original-schema plan, not arbitrary raw inputs. SolarWM may need `--native-source /external/authorized-solarwm-source`.
-
-For native startup checks, use `--profile off --startup-only`; on a shared GPU, ensure enough CUDA memory is free. For full inference use `--profile off`; optional `--profile summary` diagnostics are explained in [Profiling](PROFILING.md).
-
-## Advanced and legacy interfaces
-
-The low-level `./run.sh` interface accepts externally prepared original-schema plans and workers. `./run.sh check` and `./run.sh --help` describe the supported commands. The original paths and source-validation requirements remain enforced. Build/install helper options are available from `scripts/setup_env.sh`, `scripts/prepare_assets.sh` and `scripts/verify_install.sh`.
-
-Project-owned code is licensed as described in [LICENSE](../LICENSE); third-party components and model assets have independent distribution and use terms documented in [Third-party notices](THIRD_PARTY_NOTICES.md).
+- [Quickstart](QUICKSTART.md) — model selection and online downloads.
+- [Profiling](PROFILING.md) — native startup versus functional generation and diagnostics.
+- [Third-party notices](THIRD_PARTY_NOTICES.md) — licenses and upstream attribution.

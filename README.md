@@ -4,148 +4,109 @@
 
 **DraftKV: Protecting Persistent Worlds through Hierarchical Streaming Retrieval**
 
-DraftKV is a training-free historical key-value (KV) retrieval framework for long-horizon video generation and interactive world models. It uses camera-aware and attention-aware retrieval to recover relevant past context, then streams selected full-resolution KV from CPU memory to the GPU for efficient attention computation.
+DraftKV is a training-free historical key–value (KV) retrieval framework for persistent long-horizon video generation and interactive world models. It retrieves relevant historical context at two levels of granularity and streams selected full-resolution KV from CPU memory to the GPU.
 
-The repository provides source-preserving implementations for LongLive-1.3B, LingBot-World 1.3B/14B, and SolarWM-33B, along with a command-line workflow for installation, input preparation, and inference.
-
-## Method Overview
+## Overview
 
 DraftKV combines three components:
 
-- **Draft Grounding:** identifies geometrically relevant historical candidates using camera/frustum information.
-- **Draft Refinement:** ranks candidate KV blocks with compact draft attention relevance scores.
-- **Streaming CG-Attention:** overlaps CPU-to-GPU KV transfer with tiled attention computation.
+- **Draft Grounding** selects geometrically relevant historical candidates using camera/frustum correspondence.
+- **Draft Refinement** ranks candidate historical KV blocks using compact draft attention scores.
+- **Streaming CG-Attention** overlaps CPU-to-GPU KV transfers with tiled attention computation.
 
-The retrieval stages operate without model retraining. Full-resolution historical KV can reside in CPU memory, while compact draft descriptors remain on the GPU.
+Historical full-resolution KV can reside in CPU memory while a compact Persistent Draft Bank stays on the GPU. No model retraining is required.
 
 ### Supported Backbones
 
-| Backbone | Source directory |
-| --- | --- |
-| LongLive-1.3B | `versions/longlive` |
-| LingBot-World 1.3B | `versions/lingbot13` |
-| LingBot-World 14B | `versions/h200_large` |
-| SolarWM-33B | `versions/h200_large` |
-
-Use `./scripts/draftkv.sh list` to display the corresponding CLI backbone identifiers.
+| Backbone | Source directory | CLI identifier |
+| --- | --- | --- |
+| LongLive-1.3B | `versions/longlive` | `longlive1.3b` |
+| LingBot-World 1.3B | `versions/lingbot13` | `lingbot1.3b` |
+| LingBot-World 14B | `versions/h200_large` | `lingbot14b` |
+| SolarWM-33B | `versions/h200_large` | `solarwm33b` |
 
 ## Installation
 
-The documented native deployment target is **Linux x86_64 with an NVIDIA H200 (SM90)**. Install Python 3.10, the matching CUDA toolkit and compiler, Ninja, and CPython development headers before running the installer. Model checkpoints, gated benchmark inputs, and restricted native dependencies must be obtained separately under their respective licenses. The installer automatically downloads a **SHA-256-pinned official FlashAttention-2 wheel** for the selected PyTorch environment.
+**Platform:** Linux x86_64 with NVIDIA H200 (SM90). The host must already have a working NVIDIA driver, CUDA toolkit/build toolchain, Python 3.10 with venv/pip, Git and curl. The network installer handles the model-specific Python packages and available model/data downloads; it is **not** a bare-metal OS or CUDA driver installer.
 
-Clone the source repository:
+Clone the project:
 
 ```bash
 git clone https://github.com/TillyEndless/DraftKV-public.git
 cd DraftKV-public
-./scripts/draftkv.sh list
 ```
 
-For example, install the LingBot-World 1.3B environment and model assets:
+### Online environment and asset setup
+
+Each command below creates an isolated, pinned Python environment for the selected model and downloads its **available online** model checkpoints and optional dataset assets. It uses the user's existing Hugging Face login or `HF_TOKEN`, verifies published SHA-256 hashes, and downloads byte-identical public native source files from fixed upstream commits. Downloaded files are cached outside the Git checkout.
+
+**LongLive-1.3B**
 
 ```bash
-./scripts/draftkv.sh install \
-  --backbone lingbot1.3b \
-  --python python3.10 \
-  --cuda-home /usr/local/cuda-12.6 \
-  --env-root ${HOME}/.cache/draftkv/envs \
-  --asset-root ${HOME}/.cache/draftkv/assets \
-  --dependency-root /path/to/authorized-native-sources \
-  --authorized-gated
+./scripts/draftkv.sh bootstrap --backbone longlive1.3b --with-dataset
 ```
 
-Replace the example paths with real values. The matching FA2 wheel is **downloaded, SHA-256 verified, cached and installed automatically** from the official [FlashAttention releases](https://github.com/Dao-AILab/flash-attention/releases); no local wheel or digest is required. For offline installation, use `--fa2-wheel PATH --fa2-sha256 DIGEST`. `--authorized-gated` indicates that upstream access has already been granted. Add `--dry-run` to inspect the configuration without installing.
-
-If the system lacks Python 3.10 development headers, additionally set `--python-dev-root /path/to/python3.10/includes`. The installer selects **only the original source-locked files for the chosen backbone**, automatically fetching files with verified upstream Commit/SHA-256 matches. The remaining modified native sources cannot be reconstructed from public upstream repositories; see [Native dependency preflight](docs/INSTALL.md#native-dependency-preflight). The installer builds pinned reference FA3 and the necessary B01 native components; this is not a claim of binary identity with any earlier modified implementation. See [Installation](docs/INSTALL.md) for dependency requirements and verification commands.
-
-## LingBot-World Quick Start
-
-After installation, prepare a case from an **authorized original ORBIA dataset**:
+**LingBot-World 1.3B**
 
 ```bash
-./scripts/draftkv.sh prepare \
-  --backbone lingbot1.3b \
-  --env-root ${HOME}/.cache/draftkv/envs \
-  --dataset-root /external/orbia \
-  --index /external/orbia/installed-files.json \
-  --index-sha256 REPLACE_WITH_ACTUAL_INDEX_SHA256 \
-  --lock /external/orbia/orbia480.lock.json \
-  --case-id YOUR_ORBIA_CASE_ID \
-  --output /external/prepared/lingbot13
+./scripts/draftkv.sh bootstrap --backbone lingbot1.3b --with-dataset
 ```
 
-Use `--lock` when the original dataset distribution lock is not available in the checkout. This workflow requires genuine source-verified prompts, frames, and camera/control information; arbitrary images or fabricated camera trajectories are not supported inputs. LongLive instead uses its original WorldAttention manifest via `prepare --manifest`.
-
-Optionally check native extension compilation and import **without generating a video**:
+**LingBot-World 14B**
 
 ```bash
-./scripts/draftkv.sh run \
-  --backbone lingbot1.3b \
-  --env-root ${HOME}/.cache/draftkv/envs \
-  --asset-root ${HOME}/.cache/draftkv/assets \
-  --input /external/prepared/lingbot13/cases/YOUR_ORBIA_CASE_ID/request.json \
-  --output /external/runs/lingbot13-startup/native.mp4 \
-  --gpu 0 --profile off --startup-only
+./scripts/draftkv.sh bootstrap --backbone lingbot14b --with-dataset
 ```
 
-A successful startup check reports `PORTABLE_NATIVE_STARTUP_READY`; it does not load the model or produce a video. To run full video generation, use a **different output directory** and omit `--startup-only`:
+**SolarWM-33B**
 
 ```bash
-./scripts/draftkv.sh run \
-  --backbone lingbot1.3b \
-  --env-root ${HOME}/.cache/draftkv/envs \
-  --asset-root ${HOME}/.cache/draftkv/assets \
-  --input /external/prepared/lingbot13/cases/YOUR_ORBIA_CASE_ID/request.json \
-  --output /external/runs/lingbot13-generation/native.mp4 \
-  --gpu 0 --profile off
+./scripts/draftkv.sh bootstrap --backbone solarwm33b --with-dataset
 ```
 
-Keep environments, checkpoints, datasets, native build caches, prepared inputs, and outputs **outside the Git checkout**. See the [Quickstart guide](docs/QUICKSTART.md) for model-specific input requirements.
+No local wheel path, dependency archive, manually calculated SHA-256, dataset index, or other placeholder file path is needed for these **network bootstrap commands**. Download sizes vary substantially by model; reserve adequate free storage, particularly for the 14B and 33B checkpoints. Running the same command again verifies and reuses previously downloaded files.
 
-### Command-Line Options
+By default, environments are stored in `~/.cache/draftkv-install/<backbone>/` and downloaded assets in `~/.cache/draftkv/assets/`. Both can be relocated via `--env-root` and `--asset-root`.
 
-Inspect the current backbone's native source requirements before installing large weights:
+### What the network bootstrap does—and does not do
 
-```bash
-./scripts/draftkv.sh native-deps --backbone lingbot1.3b --dry-run
-```
-
-The compact [dependency selector](scripts/native_sources.json) preserves all 500 original identity mappings while avoiding unrelated backbone/architecture files. Use `--dependency-root /path/to/original-sources` only for files without an exact, verified public upstream URL.
-
-| Command or option | Description |
+| Component | Network bootstrap |
 | --- | --- |
-| `list` / `install` / `prepare` / `run` | List models / install dependencies / prepare verified inputs / check native startup or generate video. |
-| `native-deps` / `assets` / `environment` | Inspect/download exact native dependencies / download SHA-locked model assets / install pinned Python packages. |
-| `--backbone` | `longlive1.3b`, `lingbot1.3b`, `lingbot14b`, or `solarwm33b`. |
-| `--env-root` / `--asset-root` | External model environment and asset directories. |
-| `--python` / `--cuda-home` / `--python-dev-root` | Python 3.10, CUDA toolkit path, and matching CPython headers (install). |
-| `--dependency-root` | Optional local tree of original sources unavailable from pinned upstream URLs; validated by SHA-256. |
-| `--fa2-wheel` / `--fa2-sha256` | Optional offline override: local ABI-compatible FA2 wheel and SHA-256; normally fetched automatically (install). |
-| `--authorized-gated` / `--with-dataset` | Confirm existing upstream permission / also install dataset assets (install). |
-| `--dataset-root` / `--case-id` | Original dataset location and requested case (prepare). |
-| `--index` / `--index-sha256` / `--lock` | Original ORBIA index, its checksum, and external dataset lock when needed (prepare). |
-| `--manifest` / `--native-outputs` | Original LongLive manifest and output policy (prepare). |
-| `--input` / `--output` | Source-verified request/plan and a new output path (run). |
-| `--native-source` | Authorized original SolarWM native source directory when needed (run). |
-| `--gpu` | Physical GPU index, default `0` (run). |
-| `--profile off|summary` | `off` for normal execution; `summary` for optional deployment diagnostics, not paper benchmark results. |
-| `--startup-only` | Build/import the native extension and exit before model inference (run). |
-| `--dry-run` / `--jobs` | Preview installation/run selection / set native build parallelism (where supported). |
+| Pinned Python/PyTorch environment | Installed from online package repositories |
+| Model weights and downloadable supplementary assets | Downloaded and SHA-256 verified |
+| Published dataset assets (`--with-dataset`) | Downloaded when a verified URL exists |
+| Exact upstream native source files | Downloaded if the official file matches the original source lock |
+| Unpublished modified native/B01 source archives | **Not available online** |
+| Original ORBIA short-case inputs or unreleased evaluation inputs | **Not available online** |
+| FlashAttention/B01/FA3 full native build and video generation | **Not performed by `bootstrap`** |
 
-Full command help: `./scripts/draftkv.sh install --help`, `prepare --help`, and `run --help`. Profiling modes are described in [Profiling options](docs/PROFILING.md).
+**Important:** A successful `bootstrap` means that online software packages and available assets have been prepared; it does **not** mean end-to-end video generation is ready. The original source-locked inference path still requires project-specific modified native files and verified input cases that currently have **no confirmed public download source**. The installer will not substitute similarly named upstream code or report E2E success without running a video. See [Native dependency requirements](docs/INSTALL.md#native-dependency-preflight) and [Quickstart](docs/QUICKSTART.md) for the remaining inference prerequisites.
 
-## Repository Layout
+## Command-Line Reference
 
-- `versions/` — preserved per-backbone source implementations and scientific configurations.
-- `scripts/draftkv.sh` — public installation, preparation, and inference entry point.
-- `scripts/` and `tools/` — dependency provisioning and runtime integration utilities.
-- `docs/` — [Quickstart](docs/QUICKSTART.md), [Installation](docs/INSTALL.md), [Profiling](docs/PROFILING.md), and [Third-party notices](docs/THIRD_PARTY_NOTICES.md).
-- `tests/` — CPU unit and integration tests.
+| Command / option | Purpose |
+| --- | --- |
+| `bootstrap --backbone MODEL` | Install the model's pinned environment and fetch available network assets and byte-identical public native sources |
+| `--with-dataset` | Also download publicly available, SHA-locked dataset assets; not a replacement for unreleased original cases |
+| `--env-root DIR` / `--asset-root DIR` | Select external environment and asset/cache locations |
+| `--python python3.10` | Select the already-installed Python 3.10 interpreter |
+| `--dry-run` | Inspect the plan without installing or downloading |
+| `environment` / `assets` | Execute the Python environment or online asset phase separately |
+| `native-deps` | Inspect the original source-lock requirements for a specific Backbone |
+| `install` / `prepare` / `run` | Advanced native build, source-verified input preparation, and video inference (additional original prerequisites apply) |
 
-The repository also includes checksum and deployment manifests to verify preserved sources, external dependencies, installation assets, and original command identities.
+Check the exact CLI options using `./scripts/draftkv.sh bootstrap --help`. Detailed instructions are available in [Installation](docs/INSTALL.md), [Quickstart](docs/QUICKSTART.md), and [Profiling](docs/PROFILING.md).
+
+## Repository Structure
+
+- `versions/` — preserved Backbone-specific implementations and configurations.
+- `scripts/draftkv.sh` — public command-line entry point.
+- `scripts/` and `tools/` — environment setup, verified downloads, source binding and native build utilities.
+- `docs/` — deployment documentation, profiling options and [third-party notices](docs/THIRD_PARTY_NOTICES.md).
+- `tests/` — offline unit and integration tests.
 
 ## License and Acknowledgements
 
-Project-owned code is released under [Apache-2.0](LICENSE). Third-party components retain their own licenses, including applicable noncommercial restrictions; review the [third-party notices](docs/THIRD_PARTY_NOTICES.md) before redistribution or use.
+Project-owned code is released under [Apache-2.0](LICENSE). Third-party code, model weights and datasets are governed by their respective upstream licenses and access terms; see [Third-party notices](docs/THIRD_PARTY_NOTICES.md).
 
-DraftKV integrates with the [LongLive](https://github.com/NVlabs/LongLive), [LingBot-World](https://github.com/robbyant/lingbot-world-v2), and [SolarWM](https://github.com/Junchao-cs/SolarWM) model families. Model weights, gated datasets, and private native source archives are not bundled with this source release.
+DraftKV builds on the [LongLive](https://github.com/NVlabs/LongLive), [LingBot-World](https://github.com/Robbyant/lingbot-world-v2), and [SolarWM](https://github.com/Junchao-cs/SolarWM) model families.

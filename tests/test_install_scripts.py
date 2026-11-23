@@ -140,6 +140,21 @@ class InstallScripts(unittest.TestCase):
         self.assertEqual(target.read_bytes(), b"fixture")
         self.assertEqual(self.report.statuses, ["FAIL"])  # no-clobber link refuses race
 
+    def test_online_only_skips_unpublished_original_dataset_without_failure(self):
+        data = dict(assets=[], manual_assets=[dict(
+            id="short-orbia-original-cases", category="datasets",
+            backbones=["lingbot1.3b"], path="datasets/orbia",
+            required=[], reason="not publicly distributed")])
+        report = helper.Report()
+        with patch.object(helper, "provision_file") as download:
+            helper.asset_checks(data, "lingbot1.3b", self.root,
+                                ["datasets"], report, download=True,
+                                gated=True, dry=False, online_only=True)
+        download.assert_not_called()
+        self.assertEqual(report.statuses, ["SKIPPED"])
+        self.assertEqual(report.finish(), 0)
+        self.assertFalse((self.root / "datasets/orbia").exists())
+
     def test_gated_assets_require_authorization_and_standard_login(self):
         self.asset.update(gated=True, url="https://huggingface.co/org/gated/resolve/rev/file")
         with patch.object(helper, "run") as download, patch.object(helper, "hf_token", return_value=None):

@@ -304,10 +304,71 @@ class UserCLITests(unittest.TestCase):
             "--asset-root", str(self.art), "--with-dataset", "--dry-run"])
         with patch.object(cli, "commands") as execute:
             cli.download_assets(args)
-        cmd = [str(x) for x in execute.call_args.args[0]]
-        self.assertIn("--models", cmd)
-        self.assertIn("--datasets", cmd)
-        self.assertIn("--dry-run", cmd)
+        self.assertEqual(execute.call_count, 2)
+        first, second = [[str(x) for x in call.args[0]]
+                         for call in execute.call_args_list]
+        self.assertIn("--models", first)
+        self.assertNotIn("--datasets", first)
+        self.assertIn("--datasets", second)
+        self.assertNotIn("--models", second)
+        for cmd in (first, second):
+            self.assertIn("--online-only", cmd)
+            self.assertIn("--dry-run", cmd)
+            self.assertNotIn("--authorized-gated", cmd)
+
+    def test_bootstrap_four_backbones_are_network_only(self):
+        for backbone in cli.BACKBONES:
+            with self.subTest(backbone=backbone):
+                args = cli.make_parser().parse_args([
+                    "bootstrap", "--backbone", backbone,
+                    "--with-dataset", "--dry-run"])
+                data = dict(status="NEEDS_ORIGINAL_SOURCES",
+                            unavailable_count=33)
+                with patch.object(cli, "setup_environment") as setup, \
+                     patch.object(cli, "download_assets") as assets, \
+                     patch.object(cli, "commands",
+                                  return_value=SimpleNamespace(stdout=json.dumps(data))) as native:
+                    cli.bootstrap(args)
+                    setup.assert_called_once_with(args)
+                    assets.assert_called_once_with(args)
+                    self.assertIn("--dry-run",
+                        [str(x) for x in native.call_args.args[0]])
+                self.assertTrue(args.with_dataset)
+                self.assertNotIn("dependency_root", vars(args))
+                self.assertNotIn("fa2_wheel", vars(args))
+
+    def test_bootstrap_requires_environment_receipt_before_asset_download(self):
+        args = cli.make_parser().parse_args([
+            "bootstrap", "--backbone", "lingbot1.3b",
+            "--env-root", str(self.home / "env"),
+            "--asset-root", str(self.art)])
+        base = self.home / "env/lingbot1.3b"
+        with patch.object(cli, "setup_environment"), \
+             patch.object(cli, "download_assets") as download:
+            with self.assertRaisesRegex(ValueError, "dependency resolution is incomplete"):
+                cli.bootstrap(args)
+            download.assert_not_called()
+        base.mkdir(parents=True, exist_ok=True)
+        (base / "portable-dependency-closure.json").write_text('{"schema": 1}')
+        data = dict(status="PARTIAL_PUBLIC_NATIVE_SOURCES_DOWNLOADED",
+                    unavailable_count=33, source_hashes_verified=20)
+        with patch.object(cli, "setup_environment"), \
+             patch.object(cli, "download_assets") as download, \
+             patch.object(cli, "commands",
+                          return_value=SimpleNamespace(stdout=json.dumps(data))) as native:
+            cli.bootstrap(args)
+            download.assert_called_once_with(args)
+            self.assertIn("--download-available",
+                          [str(x) for x in native.call_args.args[0]])
+
+    def test_bootstrap_online_environment_failure_prevents_download(self):
+        args = cli.make_parser().parse_args([
+            "bootstrap", "--backbone", "longlive1.3b", "--dry-run"])
+        with patch.object(cli, "setup_environment", side_effect=ValueError("pip broken")), \
+             patch.object(cli, "download_assets") as download:
+            with self.assertRaisesRegex(ValueError, "pip broken"):
+                cli.bootstrap(args)
+            download.assert_not_called()
 
     def test_environment_subcommand_runs_online_base_setup_without_native_sources(self):
         args = cli.make_parser().parse_args([
