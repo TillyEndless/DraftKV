@@ -39,7 +39,6 @@ conda activate draftkv
 
 For legacy installations, `--env-mode venv` explicitly selects the previous per-Backbone venv implementation, even in an activated Conda shell. The default `--env-mode auto` selects an activated non-base Conda environment, or falls back to venv when no dedicated Conda environment is active. Do not reuse a venv cache as a Conda deployment cache: choose a fresh `--env-root` if a completed legacy installation already exists.
 
-To opt into the Aliyun PyTorch wheel mirror on a slow connection, add `--torch-index-url https://mirrors.aliyun.com/pytorch-wheels/cu124` to `environment` or `bootstrap` for a CUDA 12.4 Backbone. This retains exact version pins but does not independently authenticate mirrored wheel bytes against an official hash. By default the official PyTorch index is used.
 
 ## Network bootstrap by Backbone
 

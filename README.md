@@ -55,15 +55,6 @@ For LingBot-World 1.3B, pass the active Conda interpreter explicitly:
 
 The installer now installs pinned Python/PyTorch packages **directly into the activated `draftkv` Conda environment**; it does not create a nested venv. The active Conda interpreter is used throughout `environment`, `bootstrap`, `install`, `prepare`, and `run`. Package caches, native builds, and verification receipts remain outside Conda at `~/.cache/draftkv-install/lingbot1.3b/`. The active environment must be Python 3.10 and must not be Conda `base`.
 
-For faster installation on servers that reach the official PyTorch wheel index slowly, you may explicitly use the CUDA-matched Aliyun wheel index:
-
-```bash
-./scripts/draftkv.sh environment --backbone lingbot1.3b \
-  --torch-index-url https://mirrors.aliyun.com/pytorch-wheels/cu124
-```
-
-The original exact PyTorch package versions remain pinned. A third-party wheel mirror is **opt-in** and its binary contents are not independently SHA-256 verified by this installer; use the official index if byte-level provenance is required.
-
 **Use one Conda environment per Backbone.** Their locked Torch/CUDA and other dependency versions differ. For other models, use names such as `draftkv-longlive`, `draftkv-lingbot14`, and `draftkv-solarwm` (`conda create -n NAME python=3.10 -y`). The installer prevents an environment already assigned to one Backbone from being reused by another.
 
 ### Step 3: Download model and dataset assets
@@ -138,7 +129,6 @@ By default, native build artifacts, installation receipts and download caches re
 | `--with-dataset` | Also download publicly available, SHA-locked dataset assets; not a replacement for unreleased original cases |
 | `--env-root DIR` / `--asset-root DIR` | Select external environment and asset/cache locations |
 | `--python "$(which python)"` | Optionally confirm the interpreter is the activated Conda Python 3.10 |
-| `--torch-index-url URL` | Optional official/Aliyun CUDA-matched wheel index for PyTorch installation |
 | `--env-mode {auto,conda,venv}` | Auto-select active Conda (non-base); `venv` preserves the legacy isolated-venv workflow |
 | `--dry-run` | Inspect the plan without installing or downloading |
 | `environment` / `assets` | Execute the Python environment or online asset phase separately |

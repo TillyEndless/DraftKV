@@ -28,7 +28,6 @@ For LingBot-World 1.3B:
 
 Python/PyTorch dependencies are installed **directly into the activated, non-base Conda environment**. The CLI uses this interpreter for all runtime stages; no nested venv is created. `~/.cache/draftkv-install/<backbone>/` remains the location for native artifacts and installation receipts. Use a different Conda environment for each Backbone to avoid conflicting pinned versions. The legacy venv behavior remains available with `--env-mode venv`.
 
-For CUDA 12.4 Backbones, an optional faster mirrored PyTorch index is `--torch-index-url https://mirrors.aliyun.com/pytorch-wheels/cu124`. Version pins remain fixed, but third-party wheel bytes are not independently SHA-verified; the default remains the official source.
 
 ## Step 3: Download model and dataset assets
 
