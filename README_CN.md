@@ -105,22 +105,6 @@ conda activate draftkv
 
 Python 包直接安装在已激活的 Conda 环境中；Native 构建、安装记录与缓存默认放在 `~/.cache/draftkv-install/<backbone>/`，模型资产在 `~/.cache/draftkv/assets/`。`--env-root` 与 `--asset-root` 只调整这些外部目录，不改变 Conda 环境路径。
 
-### 网络部署的范围与限制
-
-| 部署内容 | 当前网络准备流程 |
-| --- | --- |
-| 固定版本 Python / PyTorch 环境 | 从在线软件包仓库安装 |
-| 模型权重及可下载的辅助资产 | 自动下载并校验 SHA-256 |
-| 已公开的数据集资产（`--with-dataset`） | 存在经验证的 URL 时自动下载 |
-| 与原始源码锁完全一致的上游 native 文件 | 从固定官方 Commit 自动下载 |
-| 未公开的定制 native / B01 源码归档 | **尚无可确认的在线来源** |
-| 原始 ORBIA 短案例或未发布的评测输入 | **尚无可确认的在线来源** |
-| FlashAttention-2（全部 GPU，模型原生依赖） | 自动下载并验证固定版本官方 wheel 后安装 |
-| FlashAttention-3（仅 Hopper SM90） | 从固定的官方源码构建并安装当前参考版本 |
-| 项目特定 B01 构建和完整视频生成 | **`bootstrap` 不会执行** |
-
-**重要：** `bootstrap` 成功代表在线 Python 环境和可获取资产准备完成，**不代表已经完成端到端视频生成部署**。原始推理路径仍需要部分尚无可信公开下载地址的定制 native 文件及可校验的原始输入案例。安装器不会用同名但哈希不同的上游文件替代，也不会在没有生成视频的情况下声称 E2E 成功。剩余前置条件见[原生依赖要求](docs/INSTALL.md#native-dependency-preflight)和[详细 Quickstart](docs/QUICKSTART.md)。
-
 ## 命令行参数说明
 
 | 命令 / 参数 | 用途 |

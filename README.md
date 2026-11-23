@@ -105,22 +105,6 @@ No local wheel path, dependency archive, manually calculated SHA-256, dataset in
 
 By default, native build artifacts, installation receipts and download caches reside in `~/.cache/draftkv-install/<backbone>/` and assets in `~/.cache/draftkv/assets/`; the Python packages reside in the activated Conda environment. `--env-root` and `--asset-root` relocate these external directories, **not** the Conda interpreter.
 
-### What the network bootstrap does—and does not do
-
-| Component | Network bootstrap |
-| --- | --- |
-| Pinned Python/PyTorch environment | Installed from online package repositories |
-| Model weights and downloadable supplementary assets | Downloaded and SHA-256 verified |
-| Published dataset assets (`--with-dataset`) | Downloaded when a verified URL exists |
-| Exact upstream native source files | Downloaded if the official file matches the original source lock |
-| Unpublished modified native/B01 source archives | **Not available online** |
-| Original ORBIA short-case inputs or unreleased evaluation inputs | **Not available online** |
-| FlashAttention-2 (all GPUs, model-native dependency) | Official pinned wheel automatically downloaded, verified and installed |
-| FlashAttention-3 (Hopper SM90 only) | Current-reference FA3 automatically built and installed from pinned upstream sources |
-| Project-specific B01 native build and video generation | **Not performed by `bootstrap`** |
-
-**Important:** A successful `bootstrap` means that online software packages and available assets have been prepared; it does **not** mean end-to-end video generation is ready. The original source-locked inference path still requires project-specific modified native files and verified input cases that currently have **no confirmed public download source**. The installer will not substitute similarly named upstream code or report E2E success without running a video. See [Native dependency requirements](docs/INSTALL.md#native-dependency-preflight) and [Quickstart](docs/QUICKSTART.md) for the remaining inference prerequisites.
-
 ## Command-Line Reference
 
 | Command / option | Purpose |
