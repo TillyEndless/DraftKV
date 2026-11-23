@@ -36,9 +36,29 @@ git clone https://github.com/TillyEndless/DraftKV-public.git
 cd DraftKV-public
 ```
 
-### 四组模型的在线环境与资产部署
+### 创建 Python 虚拟环境并安装依赖
 
-下面每条命令都会为指定 Backbone 创建独立的固定版本 Python 环境，下载**有在线来源**的模型权重和数据集资产。安装器默认使用用户现有的 Hugging Face 登录状态或 `HF_TOKEN`，校验公开资产的 SHA-256，并从固定官方提交下载与原始哈希完全一致的公共 native 源码。所有缓存位于 Git 仓库之外。
+DraftKV 为每个 Backbone 使用独立的 **Python 3.10 `venv` 虚拟环境**，目前不是 Conda。以 LingBot-World 1.3B 为例，可以像常见的科研仓库那样逐步安装：
+
+```bash
+# 1. 创建或复用 venv，在线安装固定版本 Python/PyTorch 依赖
+./scripts/draftkv.sh environment --backbone lingbot1.3b --python python3.10
+
+# 2. 可选：激活虚拟环境，用于交互式开发
+source "$HOME/.cache/draftkv-install/lingbot1.3b/venv/bin/activate"
+python -m pip check
+deactivate
+
+# 3. 从网络下载可用的模型权重和公开数据集资产
+./scripts/draftkv.sh assets --backbone lingbot1.3b \
+  --asset-root "$HOME/.cache/draftkv/assets" --with-dataset
+```
+
+第一步会通过 `python3.10 -m venv` 在 `~/.cache/draftkv-install/lingbot1.3b/venv/` 创建隔离环境，再通过在线软件包索引安装对应依赖。**激活环境不是必需的**：DraftKV CLI 会自动选择该 Backbone 对应的 venv Python。基础环境安装不包括 native FlashAttention 和 B01/FA3 编译。
+
+### 四组 Backbone 的一键网络部署
+
+正常部署时，`bootstrap` 把环境安装与在线资产下载合并，并额外获取与原始 SHA-256 一致的公开 native 源码。安装器使用已有 Hugging Face 登录状态或 `HF_TOKEN`，校验公开文件哈希；所有缓存均在 Git 仓库之外。
 
 **LongLive-1.3B**
 

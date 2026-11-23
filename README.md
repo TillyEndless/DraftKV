@@ -36,9 +36,29 @@ git clone https://github.com/TillyEndless/DraftKV-public.git
 cd DraftKV-public
 ```
 
-### Online environment and asset setup
+### Create a Python environment and install dependencies
 
-Each command below creates an isolated, pinned Python environment for the selected model and downloads its **available online** model checkpoints and optional dataset assets. It uses the user's existing Hugging Face login or `HF_TOKEN`, verifies published SHA-256 hashes, and downloads byte-identical public native source files from fixed upstream commits. Downloaded files are cached outside the Git checkout.
+DraftKV uses a separate **Python 3.10 `venv` for each Backbone**, not Conda. To see the same explicit setup sequence as a typical research-code repository, run the following example for LingBot-World 1.3B:
+
+```bash
+# 1. Create/reuse an isolated venv and install pinned Python/PyTorch packages.
+./scripts/draftkv.sh environment --backbone lingbot1.3b --python python3.10
+
+# 2. Optional: activate the environment for interactive development.
+source "$HOME/.cache/draftkv-install/lingbot1.3b/venv/bin/activate"
+python -m pip check
+deactivate
+
+# 3. Download available model weights and published dataset assets.
+./scripts/draftkv.sh assets --backbone lingbot1.3b \
+  --asset-root "$HOME/.cache/draftkv/assets" --with-dataset
+```
+
+The environment step creates `~/.cache/draftkv-install/lingbot1.3b/venv/` with `python3.10 -m venv` and installs the pinned packages from online repositories. Activation is **optional**: DraftKV's CLI always selects the appropriate venv interpreter itself. The base environment step does not install native FlashAttention or build B01/FA3.
+
+### One-command network bootstrap for all four Backbones
+
+For normal setup, the `bootstrap` command combines the environment and online asset stages, then fetches the exact byte-identical public native source subset. It uses your existing Hugging Face login or `HF_TOKEN`, verifies published SHA-256 hashes, and stores downloads outside the Git checkout.
 
 **LongLive-1.3B**
 
