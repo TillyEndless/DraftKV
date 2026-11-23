@@ -6,6 +6,7 @@ import ctypes
 import fcntl
 import hashlib
 import json
+import importlib.util
 import os
 from pathlib import Path
 import platform
@@ -16,6 +17,11 @@ import sys
 from urllib.parse import urlparse
 
 ROOT = Path(__file__).resolve().parents[1]
+# Load helpers by path: offline tests also import this module directly by file spec.
+_ENV_SPEC = importlib.util.spec_from_file_location(
+    "_draftkv_env_backend_" + "_install_py", ROOT / "scripts/env_backend.py")
+env_backend = importlib.util.module_from_spec(_ENV_SPEC)
+_ENV_SPEC.loader.exec_module(env_backend)
 MANIFEST = Path(__file__).with_name("install_manifest.json")
 
 
@@ -468,6 +474,7 @@ print(json.dumps(r))'''
 def setup(args, data, report, base):
     env = data["environments"][args.backbone]
     packages = portable_packages(env) if getattr(args, "portable", False) else selected_packages(env)
+    torch_index = env_backend.torch_index_url(getattr(args, "torch_index_url", None), env["torch_cuda"])
     source_checks(data, report)
     if getattr(args, "portable", False) and env.get("portable_overrides"):
         report.item("MANUAL_REQUIRED", "new portable compatibility pins",
@@ -480,75 +487,91 @@ def setup(args, data, report, base):
     if args.dry_run:
         for name, version in packages.items():
             report.item("MANUAL_REQUIRED" if name in env["manual_distributions"] else "NOT_CHECKED", name, version)
-        report.item("NOT_CHECKED", "setup selection", args.backbone + " -> " + str(base / "venv") + f"; Python {env['python']}, torch CUDA {env['torch_cuda']}, toolkit {env['compiler_cuda']}")
+        mode = env_backend.resolve_mode(getattr(args, "env_mode", "auto"))
+        report.item("NOT_CHECKED", "setup selection",
+                    args.backbone + " -> " + (str(os.environ.get("CONDA_PREFIX")) if mode == "conda"
+                    else str(base / "venv")) +
+                    f"; mode={mode}, Python {env['python']}, torch CUDA {env['torch_cuda']}, toolkit {env['compiler_cuda']}")
         return
     hardware_checks(env, report, portable=getattr(args, "portable", False),
                     gpu_index=getattr(args, "gpu", 0))
     if "FAIL" in report.statuses:
         return
-    interpreter = shutil.which(args.python or "python3.10")
-    if not interpreter:
-        report.item("MANUAL_REQUIRED", "Python", "provide --python /path/to/python3.10; system Python is not changed")
-        return
-    version = subprocess.check_output([interpreter, "-I", "-B", "-c", "import sys;print('%s.%s'%sys.version_info[:2])"], text=True).strip()
-    if version != env["python"]:
-        report.item("FAIL", "Python", "requires " + env["python"] + "; no alternate version installed")
-        return
+    mode = env_backend.resolve_mode(getattr(args, "env_mode", "auto"))
     if args.env_root and external(args.env_root) not in base.parents:
-        raise ValueError("venv/cache path escapes --env-root through a symlink")
-    venv = child(base, "venv")
-    if base not in venv.parents:
-        raise ValueError("venv/cache path escapes --env-root through a symlink")
-    install_env_vars(base)  # Validate every cache destination before creating directories.
-    if venv.exists() and not (venv / "pyvenv.cfg").is_file():
-        report.item("FAIL", "venv", "existing path is not a venv; preserved")
-        return
-    if venv.exists() and re.search(r"include-system-site-packages\s*=\s*true", (venv / "pyvenv.cfg").read_text(), re.I):
-        report.item("FAIL", "venv isolation", "existing venv includes global packages; preserved without modification")
-        return
-    bootstrap_pip = None
-    if not venv.exists():
-        try:
-            subprocess.check_output([interpreter, "-I", "-B", "-m", "ensurepip", "--version"],
-                                    text=True, stderr=subprocess.STDOUT)
-        except (OSError, subprocess.SubprocessError):
-            # Debian/Ubuntu may disable ensurepip on system Python even when a
-            # trusted system/user pip supports pip --python. Install pip into
-            # the brand-new isolated venv, never into system/site packages.
-            # This is a deployment bootstrap, not a historical dependency pin.
+        raise ValueError("cache path escapes --env-root through a symlink")
+    install_env_vars(base)  # Check cache destinations before any install.
+    if mode == "conda":
+        python = env_backend.conda_python(args.python)
+        # Claim the interpreter for one Backbone before touching its installed packages.
+        env_backend.binding(base, mode, python, args.backbone, claim=True)
+        for name in ("tmp", "cache/pip"):
+            child(base, name).mkdir(parents=True, exist_ok=True)
+    else:
+        interpreter = shutil.which(args.python or "python3.10")
+        if not interpreter:
+            report.item("MANUAL_REQUIRED", "Python", "provide --python /path/to/python3.10; system Python is not changed")
+            return
+        version = subprocess.check_output([interpreter, "-I", "-B", "-c", "import sys;print('%s.%s'%sys.version_info[:2])"], text=True).strip()
+        if version != env["python"]:
+            report.item("FAIL", "Python", "requires " + env["python"] + "; no alternate version installed")
+            return
+        if args.env_root and external(args.env_root) not in base.parents:
+            raise ValueError("venv/cache path escapes --env-root through a symlink")
+        venv = child(base, "venv")
+        if base not in venv.parents:
+            raise ValueError("venv/cache path escapes --env-root through a symlink")
+        install_env_vars(base)  # Validate every cache destination before creating directories.
+        if venv.exists() and not (venv / "pyvenv.cfg").is_file():
+            report.item("FAIL", "venv", "existing path is not a venv; preserved")
+            return
+        if venv.exists() and re.search(r"include-system-site-packages\s*=\s*true", (venv / "pyvenv.cfg").read_text(), re.I):
+            report.item("FAIL", "venv isolation", "existing venv includes global packages; preserved without modification")
+            return
+        bootstrap_pip = None
+        if not venv.exists():
             try:
-                output = subprocess.check_output([interpreter, "-B", "-m", "pip", "--version"],
-                                                 text=True, stderr=subprocess.STDOUT)
-                found = re.match(r"pip (\d+\.\d+(?:\.\d+)?)\b", output)
-                if not found or tuple(map(int, found.group(1).split("."))) < (22, 3):
-                    raise ValueError("bootstrap pip must support --python (pip >=22.3)")
-                bootstrap_pip = found.group(1)
-            except (OSError, subprocess.SubprocessError, ValueError):
-                report.item("MANUAL_REQUIRED", "Python ensurepip",
-                    "Python has neither ensurepip nor a trusted pip >=22.3 with --python; "
-                    "provide an isolated Python environment or install OS python3.10-venv")
-                return
-    for name in ("tmp", "cache/pip"):
-        child(base, name).mkdir(parents=True, exist_ok=True)
-    if not venv.exists():
-        command = [interpreter, "-I", "-B", "-m", "venv"]
-        if bootstrap_pip:
-            command.append("--without-pip")
-        run([*command, venv], env=install_env_vars(base))
-        if bootstrap_pip:
-            # Use the user's own bootstrap interpreter and pinned PyPI wheel.
-            # Do not let the process select a private additional package index.
-            bootstrap_env = dict(os.environ, PIP_CONFIG_FILE=os.devnull,
-                                 PIP_EXTRA_INDEX_URL="", PIP_DISABLE_PIP_VERSION_CHECK="1")
-            bootstrap_env.pop("PYTHONNOUSERSITE", None)
-            run([interpreter, "-B", "-m", "pip", "--python", str(venv / "bin/python"),
-                 "install", "--no-deps", "--only-binary=:all:", "--no-input",
-                 "--index-url", "https://pypi.org/simple", "pip==" + bootstrap_pip],
-                env=bootstrap_env)
-            report.item("PASS", "isolated pip bootstrap",
-                "venv seeded with the invoking user's trusted pip " + bootstrap_pip
-                + "; no global installation; distinct from historical package identity")
-    python = venv / "bin/python"
+                subprocess.check_output([interpreter, "-I", "-B", "-m", "ensurepip", "--version"],
+                                        text=True, stderr=subprocess.STDOUT)
+            except (OSError, subprocess.SubprocessError):
+                # Debian/Ubuntu may disable ensurepip on system Python even when a
+                # trusted system/user pip supports pip --python. Install pip into
+                # the brand-new isolated venv, never into system/site packages.
+                # This is a deployment bootstrap, not a historical dependency pin.
+                try:
+                    output = subprocess.check_output([interpreter, "-B", "-m", "pip", "--version"],
+                                                     text=True, stderr=subprocess.STDOUT)
+                    found = re.match(r"pip (\d+\.\d+(?:\.\d+)?)\b", output)
+                    if not found or tuple(map(int, found.group(1).split("."))) < (22, 3):
+                        raise ValueError("bootstrap pip must support --python (pip >=22.3)")
+                    bootstrap_pip = found.group(1)
+                except (OSError, subprocess.SubprocessError, ValueError):
+                    report.item("MANUAL_REQUIRED", "Python ensurepip",
+                        "Python has neither ensurepip nor a trusted pip >=22.3 with --python; "
+                        "provide an isolated Python environment or install OS python3.10-venv")
+                    return
+        for name in ("tmp", "cache/pip"):
+            child(base, name).mkdir(parents=True, exist_ok=True)
+        if not venv.exists():
+            command = [interpreter, "-I", "-B", "-m", "venv"]
+            if bootstrap_pip:
+                command.append("--without-pip")
+            run([*command, venv], env=install_env_vars(base))
+            if bootstrap_pip:
+                # Use the user's own bootstrap interpreter and pinned PyPI wheel.
+                # Do not let the process select a private additional package index.
+                bootstrap_env = dict(os.environ, PIP_CONFIG_FILE=os.devnull,
+                                     PIP_EXTRA_INDEX_URL="", PIP_DISABLE_PIP_VERSION_CHECK="1")
+                bootstrap_env.pop("PYTHONNOUSERSITE", None)
+                run([interpreter, "-B", "-m", "pip", "--python", str(venv / "bin/python"),
+                     "install", "--no-deps", "--only-binary=:all:", "--no-input",
+                     "--index-url", "https://pypi.org/simple", "pip==" + bootstrap_pip],
+                    env=bootstrap_env)
+                report.item("PASS", "isolated pip bootstrap",
+                    "venv seeded with the invoking user's trusted pip " + bootstrap_pip
+                    + "; no global installation; distinct from historical package identity")
+        python = venv / "bin/python"
+        env_backend.binding(base, mode, python, args.backbone, claim=True)
     actual = subprocess.check_output([str(python), "-I", "-B", "-c", "import sys;print('%s.%s'%sys.version_info[:2])"], text=True).strip()
     if actual != env["python"]:
         report.item("FAIL", "existing venv Python", "requires " + env["python"] + "; no packages changed")
@@ -561,6 +584,13 @@ def setup(args, data, report, base):
         return
     observed = json.loads(subprocess.check_output([str(python), "-I", "-B", "-c",
         "import importlib.metadata as m,json,re;print(json.dumps({re.sub(r'[-_.]+','-',d.metadata['Name']).lower():d.version for d in m.distributions()}))"], text=True))
+    old_receipt = base / "portable-dependency-closure.json"
+    if old_receipt.is_file():
+        old = json.loads(old_receipt.read_text())
+        if old.get("runtime_mode", "venv") != mode or (old.get("runtime_python") is not None
+                and old["runtime_python"] != str(python)):
+            raise ValueError("existing package closure is bound to another Python/environment")
+    pip_flags = env_backend.pip_isolated_flags(mode)
     for name, version in packages.items():
         if name in env["manual_distributions"]:
             report.item("MANUAL_REQUIRED", name, f"provide authorized original {version} wheel/build environment; no replacement is compiled")
@@ -568,8 +598,8 @@ def setup(args, data, report, base):
         if observed.get(package_key(name)) == version:
             report.item("PASS", name, "correct installed version; skipped")
             continue
-        command = [python, "-I", "-B", "-m", "pip", "--require-virtualenv", "install", "--no-deps", "--only-binary=:all:", f"{name}=={version}"]
-        command += ["--index-url", "https://download.pytorch.org/whl/cu" + env["torch_cuda"].replace(".", "")] if package_key(name) in ("torch", "torchvision") else ["--index-url", "https://pypi.org/simple"]
+        command = [python, "-I", "-B", "-m", "pip", *pip_flags, "install", "--no-deps", "--only-binary=:all:", f"{name}=={version}"]
+        command += ["--index-url", torch_index] if package_key(name) in ("torch", "torchvision") else ["--index-url", "https://pypi.org/simple"]
         run(command, env=install_env_vars(base))
     if getattr(args, "portable", False):
         # A new *deployment* environment is not a historical byte-identical
@@ -577,7 +607,7 @@ def setup(args, data, report, base):
         # pins, then verify the direct pins did not silently change.
         pinned = [f"{name}=={version}" for name, version in packages.items()
                   if name not in env["manual_distributions"]]
-        pip_args = [str(python), "-I", "-B", "-m", "pip", "--require-virtualenv",
+        pip_args = [str(python), "-I", "-B", "-m", "pip", *pip_flags,
                     "install", "--no-input", "--upgrade-strategy", "only-if-needed",
                     "--index-url", "https://pypi.org/simple", *pinned]
         run(pip_args, env=install_env_vars(base))
@@ -593,7 +623,8 @@ def setup(args, data, report, base):
         closure = dict(schema=1, scope="CURRENT_PORTABLE_ENVIRONMENT_NOT_HISTORICAL",
                        installed_distributions=final, top_level_pins=selected_packages(env),
                        portable_top_level_pins=packages,
-                       portable_compatibility_overrides=env.get("portable_overrides", {}))
+                       portable_compatibility_overrides=env.get("portable_overrides", {}),
+                       runtime_mode=mode, runtime_python=str(python))
         if receipt.exists():
             if not receipt.is_file() or receipt.is_symlink():
                 raise ValueError("existing portable closure receipt is not a regular file")
@@ -602,8 +633,11 @@ def setup(args, data, report, base):
             # Retain the original immutable installation receipt, but only if
             # current package pinning, ABI identity and profile still match.
             for key in ("schema", "scope", "top_level_pins", "portable_top_level_pins",
-                        "portable_compatibility_overrides"):
-                if earlier.get(key) != closure[key]:
+                        "portable_compatibility_overrides", "runtime_mode", "runtime_python"):
+                previous = earlier.get(key, "venv" if key == "runtime_mode" else None)
+                if key == "runtime_python" and "runtime_mode" not in earlier and mode == "venv":
+                    continue  # pre-Conda legacy receipt
+                if previous != closure[key]:
                     raise ValueError("existing portable dependency receipt conflicts with current locks")
             report.item("PASS", "portable dependency closure",
                         "reused existing receipt after pip check and current direct-pin verification")
@@ -629,7 +663,10 @@ def main(argv=None):
                    help="physical GPU index for automatic SM90 FA3 / other-GPU FA2 selection")
     p.add_argument("--env-root", default=str(Path.home() / ".cache/draftkv-install"))
     p.add_argument("--asset-root", help="external models/datasets/evaluator root (required for asset preparation)")
-    p.add_argument("--python", help="setup: original Python 3.10; verify: environment interpreter")
+    p.add_argument("--python", help="Python 3.10 interpreter; selected from active Conda when applicable")
+    p.add_argument("--torch-index-url", help="optional locked-CUDA PyTorch wheel index (official or Aliyun)")
+    p.add_argument("--env-mode", choices=env_backend.MODES, default="auto",
+                   help="auto uses activated Conda, otherwise legacy venv")
     p.add_argument("--evaluator-python", help="verify: separate original evaluator interpreter (LongLive recorded CPU preflight only)")
     p.add_argument("--dependency-root", help="external original files laid out as <version>/<package-relative path>")
     p.add_argument("--native-root", help="external original compiled route/slot libraries (read only)")
@@ -665,7 +702,11 @@ def main(argv=None):
                 source_checks(data, report, external(args.dependency_root) if args.dependency_root else None,
                               env["version_tree"], backbone=args.backbone)
                 attention_backend = hardware_checks(env, report, gpu_index=getattr(args, "gpu", 0))
-                python = Path(args.python).expanduser() if args.python else base / "venv/bin/python"
+                mode = env_backend.resolve_mode(getattr(args, "env_mode", "auto"))
+                python = (env_backend.conda_python(args.python) if mode == "conda"
+                          else Path(args.python).expanduser() if args.python
+                          else base / "venv/bin/python")
+                env_backend.binding(base, mode, python, args.backbone)
                 probe_python(python, env, report, base, attention_backend=attention_backend)
                 if args.scope in ("draftkv", "benchmark"):
                     native_checks(env, external(args.native_root) if args.native_root else None, python, report)

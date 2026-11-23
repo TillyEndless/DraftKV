@@ -14,7 +14,7 @@ cd DraftKV-public
 ## Step 1: Create and activate Conda
 
 ```bash
-conda create -n draftkv python=3.10 -y
+conda create -n draftkv python=3.10 pip -y
 conda activate draftkv
 ```
 
@@ -26,7 +26,9 @@ For LingBot-World 1.3B:
 ./scripts/draftkv.sh environment --backbone lingbot1.3b --python "$(which python)"
 ```
 
-Conda supplies the base interpreter; dependencies go into the independent `~/.cache/draftkv-install/<backbone>/venv/`, isolated from system Python and Conda environments (including `base` and `draftkv`). The CLI selects the Backbone venv automatically. Keep the Conda environment available because the venv relies on its interpreter.
+Python/PyTorch dependencies are installed **directly into the activated, non-base Conda environment**. The CLI uses this interpreter for all runtime stages; no nested venv is created. `~/.cache/draftkv-install/<backbone>/` remains the location for native artifacts and installation receipts. Use a different Conda environment for each Backbone to avoid conflicting pinned versions. The legacy venv behavior remains available with `--env-mode venv`.
+
+For CUDA 12.4 Backbones, an optional faster mirrored PyTorch index is `--torch-index-url https://mirrors.aliyun.com/pytorch-wheels/cu124`. Version pins remain fixed, but third-party wheel bytes are not independently SHA-verified; the default remains the official source.
 
 ## Step 3: Download model and dataset assets
 
@@ -37,7 +39,7 @@ Conda supplies the base interpreter; dependencies go into the independent `~/.ca
 
 ## Combined online bootstrap
 
-After creating and activating Conda in Step 1, `bootstrap` combines the environment and asset stages with automatic FA2/FA3 installation and public native-source downloads. It defaults to `python3.10` on the active `PATH`. If that name is unavailable or selects another interpreter, explicitly use the active Conda Python:
+After creating and activating Conda in Step 1, `bootstrap` combines the environment and asset stages with automatic FA2/FA3 installation and public native-source downloads. It selects the active Conda environment's `bin/python` automatically. An explicit `--python` must resolve to that same interpreter:
 
 ```bash
 ./scripts/draftkv.sh bootstrap --backbone lingbot1.3b --with-dataset \
@@ -70,7 +72,7 @@ Run the command for the desired Backbone. `--with-dataset` also fetches any veri
 ./scripts/draftkv.sh bootstrap --backbone solarwm33b --with-dataset
 ```
 
-Default storage is `~/.cache/draftkv-install/` for separate model environments and `~/.cache/draftkv/assets/` for checkpoints and online datasets. Use `--env-root` and `--asset-root` to choose a different external drive. Run the same command again to verify and reuse downloaded assets.
+Default storage is the activated Conda prefix for Python packages, `~/.cache/draftkv-install/` for per-model native/cache artifacts, and `~/.cache/draftkv/assets/` for checkpoints and online datasets. Use `--env-root` and `--asset-root` to choose a different external drive. Run the same command again to verify and reuse downloaded assets.
 
 ## Check native-source availability
 
