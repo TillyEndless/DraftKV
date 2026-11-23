@@ -1,136 +1,69 @@
-# DraftKV
+<p align="center">
+  <img src="assets/readme/hero.svg" width="100%" alt="DraftKV: training-free hierarchical historical KV retrieval and streaming CPU-to-GPU attention for persistent video world models">
+</p>
 
-**English** | [简体中文](README_CN.md)
+<p align="center">
+  <a href="README.md"><strong>English</strong></a> · <a href="README_CN.md">简体中文</a> ·
+  <a href="#how-it-works">How it works</a> · <a href="#quick-start">Quick start</a> ·
+  <a href="#documentation">Documentation</a>
+</p>
 
-**DraftKV: Protecting Persistent Worlds through Hierarchical Streaming Retrieval**
+**DraftKV** is a training-free historical key–value (KV) retrieval framework for persistent long-horizon video generation and interactive world models. It finds relevant past context without keeping the full KV history on the GPU, then streams selected KV blocks into attention.
 
-DraftKV is a training-free historical key–value (KV) retrieval framework for persistent long-horizon video generation and interactive world models. It retrieves relevant historical context at two levels of granularity and streams selected full-resolution KV from CPU memory to the GPU.
+## How it works
 
-## Overview
+<p align="center">
+  <img src="assets/readme/workflow.svg" width="100%" alt="DraftKV pipeline: query, geometry-based Draft Grounding, attention-based Draft Refinement, and tile-wise CPU-to-GPU KV streaming into GPU attention">
+</p>
 
-DraftKV combines three components:
+1. **Draft Grounding** uses camera/frustum correspondence to narrow historical retrieval to geometrically relevant candidates.
+2. **Draft Refinement** scores candidate KV blocks with compact draft attention, selecting the history most relevant to the current query.
+3. **Streaming CG-Attention** overlaps CPU-to-GPU transfers of selected full-resolution KV tiles with attention computation.
 
-- **Draft Grounding** selects geometrically relevant historical candidates using camera/frustum correspondence.
-- **Draft Refinement** ranks candidate historical KV blocks using compact draft attention scores.
-- **Streaming CG-Attention** overlaps CPU-to-GPU KV transfers with tiled attention computation.
+The **Persistent Draft Bank** stays on the GPU for retrieval; full-resolution historical KV is stored in CPU memory. DraftKV requires **no model retraining**.
 
-Historical full-resolution KV can reside in CPU memory while a compact Persistent Draft Bank stays on the GPU. No model retraining is required.
+## Quick start
 
-### Supported Backbones
-
-| Backbone | Source directory | CLI identifier |
-| --- | --- | --- |
-| LongLive-1.3B | `versions/longlive` | `longlive1.3b` |
-| LingBot-World 1.3B | `versions/lingbot13` | `lingbot1.3b` |
-| LingBot-World 14B | `versions/h200_large` | `lingbot14b` |
-| SolarWM-33B | `versions/h200_large` | `solarwm33b` |
-
-## Installation
-
-**Platform:** Linux x86_64 with an NVIDIA CUDA GPU. Install **Conda (Miniconda or Anaconda)** to provide Python 3.10; no system-wide Python 3.10 installation is required. The host must already have a working driver, compatible CUDA toolkit/build toolchain, Git and curl. Conda does not automatically install the GPU driver or system CUDA toolkit. The network installer handles the model-specific Python packages and available model/data downloads; it is **not** a bare-metal OS or CUDA driver installer.
-
-Clone the project:
+**Requirements:** Linux x86_64, an NVIDIA CUDA GPU with a working driver and compatible CUDA toolkit/build tools, Git, curl, and Conda.
 
 ```bash
-git clone https://github.com/TillyEndless/DraftKV-public.git
-cd DraftKV-public
-```
+git clone https://github.com/TillyEndless/DraftKV.git
+cd DraftKV
 
-### Step 1: Create and activate a Conda environment
-
-Conda provides the base Python 3.10 interpreter. Create and activate it before running the installation commands:
-
-```bash
 conda create -n draftkv python=3.10 pip -y
 conda activate draftkv
-```
 
-### Step 2: Install the selected Backbone's Python dependencies
-
-For LingBot-World 1.3B, pass the active Conda interpreter explicitly:
-
-```bash
-./scripts/draftkv.sh environment --backbone lingbot1.3b --python "$(which python)"
-```
-
-The installer now installs pinned Python/PyTorch packages **directly into the activated `draftkv` Conda environment**; it does not create a nested venv. The active Conda interpreter is used throughout `environment`, `bootstrap`, `install`, `prepare`, and `run`. Package caches, native builds, and verification receipts remain outside Conda at `~/.cache/draftkv-install/lingbot1.3b/`. The active environment must be Python 3.10 and must not be Conda `base`.
-
-**Use one Conda environment per Backbone.** Their locked Torch/CUDA and other dependency versions differ. For other models, use names such as `draftkv-longlive`, `draftkv-lingbot14`, and `draftkv-solarwm` (`conda create -n NAME python=3.10 -y`). The installer prevents an environment already assigned to one Backbone from being reused by another.
-
-### Step 3: Download model and dataset assets
-
-```bash
-./scripts/draftkv.sh assets --backbone lingbot1.3b \
-  --asset-root "$HOME/.cache/draftkv/assets" --with-dataset
-```
-
-The base environment step does not install native FlashAttention or build B01/FA3. For the full native `install` stage, the installer detects the selected GPU (physical `--gpu` index, default `0`): **Hopper SM90 (H100/H200) selects FA3; other NVIDIA architectures (including RTX 5090/SM120) select FA2 and skip FA3 compilation**. FA2 remains a model-native dependency on Hopper. Streaming CG-Attention's own autotuning is unchanged; the selected installer backend is not a claim of completed GPU inference.
-
-### One-command network bootstrap for all four Backbones
-
-First create and activate a dedicated Conda environment in Step 1. `bootstrap` automatically selects its `bin/python`; the explicit `--python` form below is optional and must refer to that same interpreter:
-
-```bash
-./scripts/draftkv.sh bootstrap --backbone lingbot1.3b --with-dataset \
-  --python "$(which python)"
-```
-
-For normal setup, the `bootstrap` command combines the environment and online asset stages, **automatically installs FA2 on all GPUs and builds FA3 additionally on Hopper SM90**, then fetches the exact byte-identical public native source subset. It uses your existing Hugging Face login or `HF_TOKEN`, verifies published SHA-256 hashes, and stores downloads outside the Git checkout.
-
-**LongLive-1.3B**
-
-```bash
-./scripts/draftkv.sh bootstrap --backbone longlive1.3b --with-dataset
-```
-
-**LingBot-World 1.3B**
-
-```bash
 ./scripts/draftkv.sh bootstrap --backbone lingbot1.3b --with-dataset
 ```
 
-**LingBot-World 14B**
+This prepares the pinned Python environment, available model/data assets, and architecture-selected FlashAttention dependencies. The installer uses the **active Conda environment** rather than creating a nested virtual environment. Use a separate Conda environment for each Backbone.
 
-```bash
-./scripts/draftkv.sh bootstrap --backbone lingbot14b --with-dataset
-```
+To reuse existing model files or move downloads off the home filesystem, set `--asset-root /path/to/assets`; use `--env-root /path/to/cache` for installation caches. Files with matching SHA-256 hashes are reused.
 
-**SolarWM-33B**
+For native builds, inference inputs, and video generation, follow the [full installation guide](docs/INSTALL.md) and [quickstart](docs/QUICKSTART.md).
 
-```bash
-./scripts/draftkv.sh bootstrap --backbone solarwm33b --with-dataset
-```
+## Supported backbones
 
-No local wheel path, dependency archive, manually calculated SHA-256, dataset index, or other placeholder file path is needed for these **network bootstrap commands**. Download sizes vary substantially by model; reserve adequate free storage, particularly for the 14B and 33B checkpoints. Running the same command again verifies and reuses previously downloaded files.
+| Model | `--backbone` | Source |
+| --- | --- | --- |
+| LongLive-1.3B | `longlive1.3b` | [`versions/longlive`](versions/longlive) |
+| LingBot-World 1.3B | `lingbot1.3b` | [`versions/lingbot13`](versions/lingbot13) |
+| LingBot-World 14B | `lingbot14b` | [`versions/h200_large`](versions/h200_large) |
+| SolarWM-33B | `solarwm33b` | [`versions/h200_large`](versions/h200_large) |
 
-By default, native build artifacts, installation receipts and download caches reside in `~/.cache/draftkv-install/<backbone>/` and assets in `~/.cache/draftkv/assets/`; the Python packages reside in the activated Conda environment. `--env-root` and `--asset-root` relocate these external directories, **not** the Conda interpreter.
+Replace `lingbot1.3b` in the bootstrap command with the corresponding identifier. Use `./scripts/draftkv.sh bootstrap --help` to inspect CLI options. On Hopper SM90 (H100/H200), the installer can build FA3 in addition to the model-native FA2 dependency; other supported NVIDIA architectures use FA2.
 
-## Command-Line Reference
+## Documentation
 
-| Command / option | Purpose |
-| --- | --- |
-| `bootstrap --backbone MODEL` | Install the model's pinned environment and fetch available network assets and byte-identical public native sources |
-| `--with-dataset` | Also download publicly available, SHA-locked dataset assets; not a replacement for unreleased original cases |
-| `--env-root DIR` / `--asset-root DIR` | Select external environment and asset/cache locations |
-| `--python "$(which python)"` | Optionally confirm the interpreter is the activated Conda Python 3.10 |
-| `--env-mode {auto,conda,venv}` | Auto-select active Conda (non-base); `venv` preserves the legacy isolated-venv workflow |
-| `--dry-run` | Inspect the plan without installing or downloading |
-| `environment` / `assets` | Execute the Python environment or online asset phase separately |
-| `native-deps` | Inspect the original source-lock requirements for a specific Backbone |
-| `install` / `prepare` / `run` | Advanced native build, source-verified input preparation, and video inference (additional original prerequisites apply) |
+- **[Installation](docs/INSTALL.md)** — environment setup, model assets, and native dependencies.
+- **[Quickstart](docs/QUICKSTART.md)** — preparation and inference workflow.
+- **[Profiling](docs/PROFILING.md)** — profiling entry points and measurements.
+- **[Third-party notices](docs/THIRD_PARTY_NOTICES.md)** — upstream components and licenses.
 
-Check the exact CLI options using `./scripts/draftkv.sh bootstrap --help`. Detailed instructions are available in [Installation](docs/INSTALL.md), [Quickstart](docs/QUICKSTART.md), and [Profiling](docs/PROFILING.md).
+The [`scripts/draftkv.sh`](scripts/draftkv.sh) CLI provides the public entry point. Backbone-specific source snapshots are under [`versions/`](versions), with offline checks under [`tests/`](tests).
 
-## Repository Structure
+## License and acknowledgements
 
-- `versions/` — preserved Backbone-specific implementations and configurations.
-- `scripts/draftkv.sh` — public command-line entry point.
-- `scripts/` and `tools/` — environment setup, verified downloads, source binding and native build utilities.
-- `docs/` — deployment documentation, profiling options and [third-party notices](docs/THIRD_PARTY_NOTICES.md).
-- `tests/` — offline unit and integration tests.
+Project-owned code is licensed under [Apache-2.0](LICENSE). Third-party source code, model weights, and datasets remain subject to their own licenses and access conditions; see [third-party notices](docs/THIRD_PARTY_NOTICES.md).
 
-## License and Acknowledgements
-
-Project-owned code is released under [Apache-2.0](LICENSE). Third-party code, model weights and datasets are governed by their respective upstream licenses and access terms; see [Third-party notices](docs/THIRD_PARTY_NOTICES.md).
-
-DraftKV builds on the [LongLive](https://github.com/NVlabs/LongLive), [LingBot-World](https://github.com/Robbyant/lingbot-world-v2), and [SolarWM](https://github.com/Junchao-cs/SolarWM) model families.
+DraftKV builds on [LongLive](https://github.com/NVlabs/LongLive), [LingBot-World](https://github.com/Robbyant/lingbot-world-v2), and [SolarWM](https://github.com/Junchao-cs/SolarWM).

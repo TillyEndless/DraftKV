@@ -1,136 +1,69 @@
-# DraftKV
+<p align="center">
+  <img src="assets/readme/hero.svg" width="100%" alt="DraftKV：面向持久化视频世界模型的免训练分级历史 KV 检索与 CPU 到 GPU 流式 Attention">
+</p>
 
-[English](README.md) | **简体中文**
+<p align="center">
+  <a href="README.md">English</a> · <a href="README_CN.md"><strong>简体中文</strong></a> ·
+  <a href="#工作原理">工作原理</a> · <a href="#快速开始">快速开始</a> ·
+  <a href="#文档">文档</a>
+</p>
 
-**DraftKV: Protecting Persistent Worlds through Hierarchical Streaming Retrieval**
+**DraftKV** 是面向持久化长视频生成与交互式世界模型的**免训练历史 KV 检索框架**。它无需将全部历史 KV 常驻 GPU，即可找回与当前生成相关的历史上下文，并将选中的 KV Blocks 流式送入 Attention。
 
-DraftKV 是面向持久化长视频生成和交互式世界模型的**免训练历史 KV 检索框架**。它通过两级检索筛选相关的历史上下文，并将选中的全分辨率 KV 从 CPU 内存流式传输至 GPU 执行 Attention。
+## 工作原理
 
-## 方法概览
+<p align="center">
+  <img src="assets/readme/workflow.svg" width="100%" alt="DraftKV 流程：当前 Query 经 Draft Grounding 几何筛选、Draft Refinement 相关性排序，再将选中的完整历史 KV 从 CPU 分块传输至 GPU Attention">
+</p>
 
-DraftKV 包含三个核心模块：
+1. **Draft Grounding：** 利用相机视锥和几何对应关系，从历史中筛选空间相关的候选范围。
+2. **Draft Refinement：** 利用紧凑的 Draft Attention 对候选 KV Blocks 评分，进一步选出与当前 Query 相关的历史。
+3. **Streaming CG-Attention：** 将所选全分辨率 KV 的 CPU→GPU 分块传输与 Attention 计算重叠执行。
 
-- **Draft Grounding：** 基于相机视锥和几何对应关系筛选历史候选。
-- **Draft Refinement：** 使用紧凑的 Draft Attention 分数对候选 KV Blocks 进一步排序。
-- **Streaming CG-Attention：** 重叠执行 CPU→GPU KV 传输与分块 Attention 计算。
+用于检索的 **Persistent Draft Bank** 常驻 GPU，全分辨率历史 KV 保存在 CPU 内存中。整个流程**无需重新训练模型**。
 
-全分辨率历史 KV 可以存放在 CPU 内存中，紧凑的 Persistent Draft Bank 则保留在 GPU 上，整个检索流程无需重新训练模型。
+## 快速开始
 
-### 支持的 Backbone
-
-| 模型 | 源码目录 | CLI 标识 |
-| --- | --- | --- |
-| LongLive-1.3B | `versions/longlive` | `longlive1.3b` |
-| LingBot-World 1.3B | `versions/lingbot13` | `lingbot1.3b` |
-| LingBot-World 14B | `versions/h200_large` | `lingbot14b` |
-| SolarWM-33B | `versions/h200_large` | `solarwm33b` |
-
-## 安装
-
-**部署平台：** Linux x86_64 + NVIDIA CUDA GPU。请先安装 **Conda（Miniconda 或 Anaconda）**，由 Conda 提供 Python 3.10，无需预先安装系统级 Python 3.10。宿主机需要已经安装可用的驱动、兼容的 CUDA Toolkit/编译工具链、Git 和 curl。Conda 不会自动安装 GPU 驱动或系统级 CUDA Toolkit。在线安装命令负责模型专属 Python 包、权重及可下载的数据资产，**不负责安装操作系统或 GPU 驱动**。
-
-克隆仓库：
+**环境要求：** Linux x86_64、配备可用驱动及兼容 CUDA Toolkit/编译工具链的 NVIDIA GPU，以及 Git、curl 和 Conda。
 
 ```bash
-git clone https://github.com/TillyEndless/DraftKV-public.git
-cd DraftKV-public
-```
+git clone https://github.com/TillyEndless/DraftKV.git
+cd DraftKV
 
-### Step 1：创建并激活 Conda 环境
-
-Conda 负责提供 Python 3.10 基础解释器。运行安装命令前，先创建并激活环境：
-
-```bash
 conda create -n draftkv python=3.10 pip -y
 conda activate draftkv
-```
 
-### Step 2：安装对应 Backbone 的 Python 依赖
-
-以 LingBot-World 1.3B 为例，显式传入当前 Conda 环境的解释器：
-
-```bash
-./scripts/draftkv.sh environment --backbone lingbot1.3b --python "$(which python)"
-```
-
-现在安装器会将固定版本的 Python/PyTorch 依赖**直接安装到已激活的 `draftkv` Conda 环境中**，不再创建嵌套 venv。命令 `environment`、`bootstrap`、`install`、`prepare`、`run` 均使用同一 Conda 解释器；Native 编译产物、安装记录和缓存仍保存在 `~/.cache/draftkv-install/lingbot1.3b/`。要求 Conda 环境使用 Python 3.10，且不能为 `base`。
-
-**每个 Backbone 需要独立的 Conda 环境。** 四组模型的 PyTorch/CUDA 和部分依赖版本并不一致；其他模型请分别使用 `draftkv-longlive`、`draftkv-lingbot14`、`draftkv-solarwm` 等环境名称。安装器会阻止将其他 Backbone 安装进已绑定的环境。
-
-### Step 3：下载模型和数据集资产
-
-```bash
-./scripts/draftkv.sh assets --backbone lingbot1.3b \
-  --asset-root "$HOME/.cache/draftkv/assets" --with-dataset
-```
-
-基础环境安装不包括 native FlashAttention 和 B01/FA3 编译。正式原生 `install` 阶段会检测所选 GPU（物理编号 `--gpu`，默认 `0`）：**Hopper SM90（H100/H200）选择 FA3，其他 NVIDIA 架构（包括 RTX 5090/SM120）选择 FA2 并跳过 FA3 编译**。Hopper 上仍保留模型原生调用所需的 FA2 依赖。Streaming CG-Attention 的 autotune 不受修改；自动选择安装后端不代表已通过 GPU 推理验收。
-
-### 四组 Backbone 的一键网络部署
-
-必须先完成 Step 1，创建并激活专用 Conda 环境。`bootstrap` 会自动选用该环境的 `bin/python`；也可以显式传入 `--python`，但必须与当前激活的 Conda Python 一致：
-
-```bash
-./scripts/draftkv.sh bootstrap --backbone lingbot1.3b --with-dataset \
-  --python "$(which python)"
-```
-
-正常部署时，`bootstrap` 合并环境安装与在线资产下载，**自动为各类 GPU 安装 FA2，在 Hopper SM90 上额外编译并安装 FA3**，并获取与原始 SHA-256 一致的公开 native 源码。安装器使用已有 Hugging Face 登录状态或 `HF_TOKEN`，校验公开文件哈希；所有缓存均在 Git 仓库之外。
-
-**LongLive-1.3B**
-
-```bash
-./scripts/draftkv.sh bootstrap --backbone longlive1.3b --with-dataset
-```
-
-**LingBot-World 1.3B**
-
-```bash
 ./scripts/draftkv.sh bootstrap --backbone lingbot1.3b --with-dataset
 ```
 
-**LingBot-World 14B**
+上述命令将准备固定版本的 Python 环境、可获取的模型/数据资产及按 GPU 架构选择的 FlashAttention 依赖。安装器**直接使用当前激活的 Conda 环境**，不会再创建嵌套虚拟环境。不同 Backbone 应使用独立 Conda 环境。
 
-```bash
-./scripts/draftkv.sh bootstrap --backbone lingbot14b --with-dataset
-```
+如需复用已有模型文件或调整下载目录，可指定 `--asset-root /path/to/assets`；安装缓存可通过 `--env-root /path/to/cache` 指定。安装器会校验并复用 SHA-256 匹配的文件。
 
-**SolarWM-33B**
+Native 构建、推理输入准备和视频生成步骤见[完整安装文档](docs/INSTALL.md)及[详细 Quickstart](docs/QUICKSTART.md)。
 
-```bash
-./scripts/draftkv.sh bootstrap --backbone solarwm33b --with-dataset
-```
+## 支持的 Backbone
 
-以上**网络准备命令**无需提供本地 wheel、原生依赖压缩包、手动计算的 SHA-256、数据集索引或其他占位文件路径。不同 Backbone 的下载体积差异较大，特别是 14B 和 33B 模型，请确保有足够的磁盘空间。重复执行会校验并复用已经下载的文件。
+| 模型 | `--backbone` | 源码目录 |
+| --- | --- | --- |
+| LongLive-1.3B | `longlive1.3b` | [`versions/longlive`](versions/longlive) |
+| LingBot-World 1.3B | `lingbot1.3b` | [`versions/lingbot13`](versions/lingbot13) |
+| LingBot-World 14B | `lingbot14b` | [`versions/h200_large`](versions/h200_large) |
+| SolarWM-33B | `solarwm33b` | [`versions/h200_large`](versions/h200_large) |
 
-Python 包直接安装在已激活的 Conda 环境中；Native 构建、安装记录与缓存默认放在 `~/.cache/draftkv-install/<backbone>/`，模型资产在 `~/.cache/draftkv/assets/`。`--env-root` 与 `--asset-root` 只调整这些外部目录，不改变 Conda 环境路径。
+将 bootstrap 命令中的 `lingbot1.3b` 替换为相应标识即可。完整参数可通过 `./scripts/draftkv.sh bootstrap --help` 查看。Hopper SM90（H100/H200）可在模型原生 FA2 依赖之外额外编译 FA3；其他受支持的 NVIDIA GPU 使用 FA2。
 
-## 命令行参数说明
+## 文档
 
-| 命令 / 参数 | 用途 |
-| --- | --- |
-| `bootstrap --backbone MODEL` | 安装模型专属 Python 环境，下载可用的在线资产及精确匹配的公开 native 源码 |
-| `--with-dataset` | 同时下载已公开、带 SHA-256 锁定的数据集资产；不代表包含未发布的原始案例 |
-| `--env-root DIR` / `--asset-root DIR` | 指定外部环境、模型资产与缓存的存储目录 |
-| `--python "$(which python)"` | 可选：显式指定当前激活的 Conda Python 3.10 |
-| `--env-mode {auto,conda,venv}` | 默认自动使用已激活的非 base Conda 环境，`venv` 保留旧版独立虚拟环境流程 |
-| `--dry-run` | 仅查看安装计划，不创建环境或下载 |
-| `environment` / `assets` | 单独执行 Python 环境安装或在线资产下载 |
-| `native-deps` | 检查指定 Backbone 的原始 native 源码锁依赖 |
-| `install` / `prepare` / `run` | 高级原生构建、来源校验后的输入准备和视频推理（还需其他原始前置资产） |
+- **[安装说明](docs/INSTALL.md)** — 环境、模型资产与 Native 依赖。
+- **[Quickstart](docs/QUICKSTART.md)** — 输入准备与推理流程。
+- **[Profiling](docs/PROFILING.md)** — 性能测量入口及说明。
+- **[第三方许可声明](docs/THIRD_PARTY_NOTICES.md)** — 上游组件及许可证。
 
-完整参数请运行 `./scripts/draftkv.sh bootstrap --help`。进一步使用说明见[安装文档](docs/INSTALL.md)、[Quickstart](docs/QUICKSTART.md) 和 [Profiling](docs/PROFILING.md)。
-
-## 仓库结构
-
-- `versions/` — 按 Backbone 保留的原始实现和配置。
-- `scripts/draftkv.sh` — 公开命令行入口。
-- `scripts/` 和 `tools/` — 环境安装、校验下载、源码绑定和原生编译工具。
-- `docs/` — 部署说明、Profiling 选项与[第三方许可声明](docs/THIRD_PARTY_NOTICES.md)。
-- `tests/` — 离线单元测试和集成测试。
+统一入口为 [`scripts/draftkv.sh`](scripts/draftkv.sh)。各 Backbone 的源码快照位于 [`versions/`](versions)，离线检查位于 [`tests/`](tests)。
 
 ## 许可证与致谢
 
-项目自有代码采用 [Apache-2.0](LICENSE) 许可证。第三方源码、模型权重和数据集遵循各自的上游许可与访问要求，详见[第三方许可声明](docs/THIRD_PARTY_NOTICES.md)。
+项目自有代码采用 [Apache-2.0](LICENSE) 许可证；第三方源码、模型权重和数据集遵循各自的授权与访问条款，详见[第三方许可声明](docs/THIRD_PARTY_NOTICES.md)。
 
 DraftKV 基于 [LongLive](https://github.com/NVlabs/LongLive)、[LingBot-World](https://github.com/Robbyant/lingbot-world-v2) 和 [SolarWM](https://github.com/Junchao-cs/SolarWM) 等模型体系构建。
