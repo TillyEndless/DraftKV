@@ -271,6 +271,65 @@ class UserCLITests(unittest.TestCase):
                                           "--input",str(self.prepared),
                                           "--output",str(self.output)])
 
+    def test_native_dependency_subcommand_is_backbone_and_profile_scoped(self):
+        args = cli.make_parser().parse_args([
+            "native-deps", "--backbone", "lingbot1.3b",
+            "--profile", "inference", "--dry-run"])
+        with patch.object(cli, "commands") as execute:
+            cli.inspect_native_dependencies(args)
+        command = [str(x) for x in execute.call_args.args[0]]
+        self.assertIn("provision_sources.py", command[1])
+        self.assertIn("--dry-run", command)
+        self.assertEqual(command[command.index("--backbone") + 1], "lingbot1.3b")
+        self.assertEqual(command[command.index("--profile") + 1], "inference")
+
+    def test_assets_subcommand_downloads_model_files_with_existing_hf_login(self):
+        args = cli.make_parser().parse_args([
+            "assets", "--backbone", "solarwm33b",
+            "--asset-root", str(self.art)])
+        with patch.object(cli, "commands") as execute:
+            cli.download_assets(args)
+        execute.assert_called_once()
+        cmd = [str(x) for x in execute.call_args.args[0]]
+        self.assertIn("prepare_assets.sh", cmd[0])
+        self.assertIn("--models", cmd)
+        self.assertNotIn("--authorized-gated", cmd)
+        self.assertNotIn("--datasets", cmd)
+        self.assertEqual(cmd[cmd.index("--backbone") + 1], "solarwm33b")
+        self.assertEqual(Path(cmd[cmd.index("--asset-root") + 1]).resolve(), self.art.resolve())
+
+    def test_assets_subcommand_dry_run_and_dataset_selection(self):
+        args = cli.make_parser().parse_args([
+            "assets", "--backbone", "lingbot1.3b",
+            "--asset-root", str(self.art), "--with-dataset", "--dry-run"])
+        with patch.object(cli, "commands") as execute:
+            cli.download_assets(args)
+        cmd = [str(x) for x in execute.call_args.args[0]]
+        self.assertIn("--models", cmd)
+        self.assertIn("--datasets", cmd)
+        self.assertIn("--dry-run", cmd)
+
+    def test_environment_subcommand_runs_online_base_setup_without_native_sources(self):
+        args = cli.make_parser().parse_args([
+            "environment", "--backbone", "lingbot1.3b",
+            "--python", "python3.10", "--env-root", str(self.home / "env")])
+        with patch.object(cli.subprocess, "run",
+                          return_value=SimpleNamespace(returncode=3)) as setup:
+            cli.setup_environment(args)
+        called = [str(x) for x in setup.call_args.args[0]]
+        self.assertIn("setup_env.sh", called[0])
+        self.assertIn("--portable", called)
+        self.assertEqual(called[called.index("--backbone") + 1], "lingbot1.3b")
+        self.assertNotIn("--dependency-root", called)
+        self.assertNotIn("--fa2-wheel", called)
+
+    def test_environment_dry_run_never_downloads_or_mutates(self):
+        args = cli.make_parser().parse_args([
+            "environment", "--backbone", "longlive1.3b", "--dry-run"])
+        with patch.object(cli.subprocess, "run") as invoke:
+            cli.setup_environment(args)
+        invoke.assert_not_called()
+
     def test_install_rejects_incomplete_offline_fa2_override_before_side_effects(self):
         args = self.args_install("--dependency-root", str(self.home / "original"),
                                  "--fa2-wheel", str(self.home / "missing.whl"))

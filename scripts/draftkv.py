@@ -327,6 +327,60 @@ def gpu_uuid(index):
     return devices[0]
 
 
+def inspect_native_dependencies(args):
+    """Resolve/download only the original source-locked selection for one model."""
+    command = [sys.executable, ROOT / "scripts/provision_sources.py",
+               "--backbone", args.backbone, "--profile", args.profile]
+    if args.dependency_root:
+        command += ["--dependency-root", args.dependency_root]
+    if args.dependency_cache:
+        command += ["--cache-root", args.dependency_cache]
+    if args.dry_run:
+        command.append("--dry-run")
+    commands(command)
+
+
+def download_assets(args):
+    """Download all pinned online model assets using the caller's existing HF login."""
+    root = external(args.asset_root)
+    selection = ["--models"]
+    if args.with_dataset:
+        selection.append("--datasets")
+    cmd = [ROOT / "scripts/prepare_assets.sh", "--backbone", args.backbone,
+           "--asset-root", str(root), *selection]
+    if args.dry_run:
+        cmd.append("--dry-run")
+    # The assets helper is network-first and uses HF_TOKEN / a standard HF login.
+    # Upstream access is managed by Hugging Face, not by a local confirmation flag.
+    commands(cmd)
+    print(json.dumps(dict(
+        status="ASSET_DOWNLOAD_PLAN_ONLY" if args.dry_run else "PINNED_ONLINE_ASSETS_READY",
+        backbone=args.backbone,
+        asset_root=str(root),
+        categories=["models", *(["datasets"] if args.with_dataset else [])],
+        original_benchmark_inputs="SEPARATELY_REQUIRED",
+    ), indent=2))
+
+
+def setup_environment(args):
+    """Bootstrap the pinned Python package environment from online indices."""
+    base, python, _, _ = paths(args)
+    if args.dry_run:
+        print(json.dumps(dict(status="ENVIRONMENT_PLAN_ONLY",
+                              backbone=args.backbone, python=args.python,
+                              env_root=str(base)), indent=2))
+        return
+    result = subprocess.run([str(ROOT / "scripts/setup_env.sh"),
+                             "--backbone", args.backbone, "--env-root", args.env_root,
+                             "--python", args.python, "--portable"], check=False)
+    require(result.returncode in (0, 3) and python.is_file(),
+            "base environment installation failed; inspect setup_env.sh report")
+    # This stage does not claim FlashAttention native readiness or an E2E GPU run.
+    print(json.dumps(dict(status="BASE_ENVIRONMENT_PREPARED",
+                          backbone=args.backbone, python=str(python),
+                          native_dependencies="NOT_INSTALLED"), indent=2))
+
+
 def install(args):
     base, python, b01, fa3 = paths(args)
     require(Path(args.cuda_home).is_absolute(), "CUDA_HOME must be absolute")
@@ -339,8 +393,6 @@ def install(args):
                          indent=2))
         return
     require(args.asset_root, "install requires --asset-root for model asset deployment")
-    require(args.dependency_root,
-            "install requires --dependency-root of user-authorized SHA-locked native sources")
     require(args.build_fa3,
             "complete installation requires FA3 compilation; --no-build-fa3 cannot be marked successful")
     # Validate the pinned official source or explicit user-provided binary
@@ -349,6 +401,21 @@ def install(args):
         verify_user_fa2_wheel(args.fa2_wheel, args.fa2_sha256)
     else:
         pinned_official_fa2_wheel(args.backbone)
+    # Refuse BEFORE the large PyTorch/model downloads if the source-locked
+    # files cannot be recovered via exact upstream URLs or the optional local tree.
+    native_cmd = [sys.executable, ROOT / "scripts/provision_sources.py",
+                  "--backbone", args.backbone, "--profile", "inference"]
+    if args.dependency_root:
+        native_cmd += ["--dependency-root", args.dependency_root]
+    if args.dependency_cache:
+        native_cmd += ["--cache-root", args.dependency_cache]
+    inspection = subprocess.run([str(x) for x in native_cmd] +
+                                ["--dry-run", "--require-available"],
+                                capture_output=True, text=True, check=False)
+    require(inspection.returncode == 0,
+            "native dependencies are not all downloadable: " +
+            inspection.stderr.strip().removeprefix("BLOCKED: ") +
+            "; obtain missing originals via --dependency-root")
     # Existing source installer returns code 3 for unknown original optional
     # dependency provenance even when required wheels were installed.
     # Do not pretend it is historical reconstruction; continue only with a
@@ -362,15 +429,13 @@ def install(args):
     headers = resolve_python_headers(python, args.python_dev_root)
     runtime_receipt = install_model_closure(args, python, base, headers)
     environment = env_for(python, headers=headers, cuda_home=args.cuda_home)
-    commands([sys.executable, ROOT / "scripts/provision_sources.py",
-              "--backbone", args.backbone,
-              "--dependency-root", args.dependency_root])
+    commands(native_cmd)
     if args.asset_root:
         for category in ("--models", "--datasets") if args.with_dataset else ("--models",):
             argv = [ROOT / "scripts/prepare_assets.sh", "--backbone", args.backbone,
                     "--env-root", args.env_root, "--asset-root", args.asset_root, category]
-            if args.authorized_gated:
-                argv.append("--authorized-gated")
+            # Authentication is handled by the configured Hugging Face account.
+            # The assets helper auto-attempts gated downloads and reports 401/403.
             commands(argv)
     if args.build_fa3:
         # Uses pinned upstream reference; does not claim historically modified
@@ -569,12 +634,15 @@ def make_parser():
         c.add_argument("--dry-run", action="store_true")
         if action == "install":
             c.add_argument("--asset-root")
-            c.add_argument("--dependency-root", help="authorized source tree for SHA-verified native files")
+            c.add_argument("--dependency-root", help="optional original SHA-verified source tree; "
+                           "needed only for dependencies not downloadable from exact upstream")
+            c.add_argument("--dependency-cache", help="optional external cache for source-verified "
+                           "public upstream files")
             c.add_argument("--python", default="python3.10", help="base Python 3.10")
             c.add_argument("--cuda-home", required=True)
             c.add_argument("--with-dataset", action="store_true")
             c.add_argument("--authorized-gated", action="store_true",
-                           help="user has independently obtained upstream approval")
+                           help="deprecated compatibility flag; HF login is used automatically")
             c.add_argument("--build-fa3", action=argparse.BooleanOptionalAction, default=True)
             c.add_argument("--jobs", type=int, default=4)
             c.add_argument("--fa2-wheel", help="optional offline/override ABI-matched FA2 wheel; "
@@ -591,6 +659,24 @@ def make_parser():
             c.add_argument("--profile", choices=("off", "summary"), default="off")
             c.add_argument("--startup-only", action="store_true",
                            help="compile/load original native extension and exit before model generation")
+    native = sub.add_parser("native-deps",
+                            help="inspect or provision per-backbone SHA-locked native sources")
+    native.add_argument("--backbone", choices=BACKBONES, required=True)
+    native.add_argument("--dependency-root", help="optional original source archive tree")
+    native.add_argument("--dependency-cache", help="external verified upstream file cache")
+    native.add_argument("--profile", choices=("inference", "full"), default="inference")
+    native.add_argument("--dry-run", action="store_true")
+    assets = sub.add_parser("assets", help="download SHA-locked model assets from Hugging Face")
+    assets.add_argument("--backbone", choices=BACKBONES, required=True)
+    assets.add_argument("--asset-root", required=True)
+    assets.add_argument("--with-dataset", action="store_true",
+                        help="also fetch pinned online dataset assets; original cases may still be unavailable")
+    assets.add_argument("--dry-run", action="store_true")
+    environment = sub.add_parser("environment", help="install per-backbone pinned Python packages")
+    environment.add_argument("--backbone", choices=BACKBONES, required=True)
+    environment.add_argument("--env-root", default=str(Path.home() / ".cache/draftkv-install"))
+    environment.add_argument("--python", default="python3.10")
+    environment.add_argument("--dry-run", action="store_true")
     prep = sub.add_parser("prepare", help="prepare original authorized benchmark inputs")
     prep.add_argument("--backbone", choices=BACKBONES, required=True)
     prep.add_argument("--env-root", default=str(Path.home() / ".cache/draftkv-install"))
@@ -613,6 +699,12 @@ def main(argv=None):
             print("\n".join(BACKBONES))
         elif args.action == "install":
             install(args)
+        elif args.action == "native-deps":
+            inspect_native_dependencies(args)
+        elif args.action == "assets":
+            download_assets(args)
+        elif args.action == "environment":
+            setup_environment(args)
         elif args.action == "prepare":
             prepare_inputs(args)
         else:

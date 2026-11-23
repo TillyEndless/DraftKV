@@ -12,6 +12,14 @@ cd DraftKV-public
 
 ## 2. Install
 
+Check the current model's source-locked native dependencies before starting a large installation:
+
+```bash
+./scripts/draftkv.sh native-deps --backbone lingbot1.3b --dry-run
+```
+
+Only byte-identical upstream files are fetched automatically. The installed source selection is smaller than the full historical inventory, but original modified native files that have no verifiable public source must still be supplied through `--dependency-root`. See [Native dependency preflight](INSTALL.md#native-dependency-preflight).
+
 ```bash
 ./scripts/draftkv.sh install \
   --backbone lingbot1.3b \

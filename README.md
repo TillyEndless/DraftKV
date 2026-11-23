@@ -56,7 +56,7 @@ For example, install the LingBot-World 1.3B environment and model assets:
 
 Replace the example paths with real values. The matching FA2 wheel is **downloaded, SHA-256 verified, cached and installed automatically** from the official [FlashAttention releases](https://github.com/Dao-AILab/flash-attention/releases); no local wheel or digest is required. For offline installation, use `--fa2-wheel PATH --fa2-sha256 DIGEST`. `--authorized-gated` indicates that upstream access has already been granted. Add `--dry-run` to inspect the configuration without installing.
 
-If the system lacks Python 3.10 development headers, additionally set `--python-dev-root /path/to/python3.10/includes`. The installer builds pinned reference FA3 and the necessary B01 native components; this is not a claim of binary identity with any earlier modified implementation. See [Installation](docs/INSTALL.md) for dependency requirements and verification commands.
+If the system lacks Python 3.10 development headers, additionally set `--python-dev-root /path/to/python3.10/includes`. The installer selects **only the original source-locked files for the chosen backbone**, automatically fetching files with verified upstream Commit/SHA-256 matches. The remaining modified native sources cannot be reconstructed from public upstream repositories; see [Native dependency preflight](docs/INSTALL.md#native-dependency-preflight). The installer builds pinned reference FA3 and the necessary B01 native components; this is not a claim of binary identity with any earlier modified implementation. See [Installation](docs/INSTALL.md) for dependency requirements and verification commands.
 
 ## LingBot-World Quick Start
 
@@ -104,13 +104,22 @@ Keep environments, checkpoints, datasets, native build caches, prepared inputs, 
 
 ### Command-Line Options
 
+Inspect the current backbone's native source requirements before installing large weights:
+
+```bash
+./scripts/draftkv.sh native-deps --backbone lingbot1.3b --dry-run
+```
+
+The compact [dependency selector](scripts/native_sources.json) preserves all 500 original identity mappings while avoiding unrelated backbone/architecture files. Use `--dependency-root /path/to/original-sources` only for files without an exact, verified public upstream URL.
+
 | Command or option | Description |
 | --- | --- |
 | `list` / `install` / `prepare` / `run` | List models / install dependencies / prepare verified inputs / check native startup or generate video. |
+| `native-deps` / `assets` / `environment` | Inspect/download exact native dependencies / download SHA-locked model assets / install pinned Python packages. |
 | `--backbone` | `longlive1.3b`, `lingbot1.3b`, `lingbot14b`, or `solarwm33b`. |
 | `--env-root` / `--asset-root` | External model environment and asset directories. |
 | `--python` / `--cuda-home` / `--python-dev-root` | Python 3.10, CUDA toolkit path, and matching CPython headers (install). |
-| `--dependency-root` | Authorized original native sources, validated with SHA-256 (install). |
+| `--dependency-root` | Optional local tree of original sources unavailable from pinned upstream URLs; validated by SHA-256. |
 | `--fa2-wheel` / `--fa2-sha256` | Optional offline override: local ABI-compatible FA2 wheel and SHA-256; normally fetched automatically (install). |
 | `--authorized-gated` / `--with-dataset` | Confirm existing upstream permission / also install dataset assets (install). |
 | `--dataset-root` / `--case-id` | Original dataset location and requested case (prepare). |

@@ -28,6 +28,25 @@ If the system Python 3.10 development headers are not available, add `--python-d
 
 The installer checks the [external dependency hashes](../EXTERNAL_DEPENDENCY_SHA256.json) and uses authorized sources from `--dependency-root`; it never fetches restricted third-party archives for you. The pinned FA3 build uses separately verified reference sources. Model assets may require upstream authentication, manual approval or third-party license compliance.
 
+## Native dependency preflight
+
+Each model uses a compact, **SHA-256-equivalent** view of the original external source inventory. The archived `EXTERNAL_DEPENDENCY_SHA256.json` (500 records) is retained unchanged for the frozen original launchers; `scripts/native_sources.json` selects only the relevant source-lock files and records verified upstream URLs for byte-identical source files.
+
+| Backbone | Native source-lock files selected (SM90 inference) | Verified upstream downloads | Remaining original-only files |
+|---|---:|---:|---:|
+| LongLive-1.3B | 49 | 28 | 21 |
+| LingBot-World 1.3B | 53 | 20 | 33 |
+| LingBot-World 14B | 53 | 20 | 33 |
+| SolarWM-33B | 4 | 0 | 4 |
+
+```bash
+./scripts/draftkv.sh native-deps --backbone lingbot1.3b --dry-run
+```
+
+`--profile inference` (default) excludes unrelated model families and SM120 headers on H200; `--profile full` includes the complete 100-entry legacy closure for the selected source version. Some apparently optional training/profiling files remain in the source-lock group because the immutable original planner audits the complete original model tree. The B01 evidence archive also remains necessary for the original B01 source integrity check. **No frozen scientific source, hash or native ABI is modified by this selection.**
+
+The downloader fetches only publicly available files that were verified byte-for-byte against a fixed upstream Git commit and the original SHA-256. If any original-only file is absent, `install` fails **before** downloading heavy packages or model weights and identifies the missing files. Provide those exact originals with `--dependency-root /path/to/original-source-tree` (version-prefixed layout); a similar upstream file or a different CUDA kernel is not an acceptable replacement. SolarWM also requires its separate original native model source at inference time.
+
 ## Verify dependencies
 
 ```bash

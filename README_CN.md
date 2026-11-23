@@ -56,7 +56,7 @@ cd DraftKV-public
 
 请将示例路径替换为真实值。安装器会从 [FlashAttention 官方 Releases](https://github.com/Dao-AILab/flash-attention/releases) **自动下载、校验 SHA-256、缓存并安装匹配的 FA2 wheel**，无需用户手动提供 wheel 和哈希。离线环境可使用 `--fa2-wheel PATH --fa2-sha256 DIGEST` 指定本地文件。`--authorized-gated` 表示用户已获得上游许可；添加 `--dry-run` 可预览安装配置。
 
-如果系统缺少 Python 3.10 的开发头文件，可以额外指定 `--python-dev-root /path/to/python3.10/includes`。安装器会构建固定版本的参考 FA3 和所需的 B01 native 组件；这不意味着所编译的二进制文件与历史修改版本完全一致。依赖要求及验证命令见[安装说明](docs/INSTALL.md)。
+如果系统缺少 Python 3.10 的开发头文件，可以额外指定 `--python-dev-root /path/to/python3.10/includes`。安装器只选择**当前 Backbone 所需的原始源码锁文件**，并自动下载有官方固定 Commit 与 SHA-256 一致来源的文件。部分修改后的原生源码无法由公开上游仓库恢复，详见[原生依赖预检查](docs/INSTALL.md#native-dependency-preflight)。安装器会构建固定版本的参考 FA3 和所需的 B01 native 组件；这不意味着所编译的二进制文件与历史修改版本完全一致。依赖要求及验证命令见[安装说明](docs/INSTALL.md)。
 
 ## LingBot-World 快速开始
 
@@ -104,13 +104,22 @@ cd DraftKV-public
 
 ### 主要命令与参数
 
+下载大量模型权重前，可以检查当前 Backbone 所需的原生源码：
+
+```bash
+./scripts/draftkv.sh native-deps --backbone lingbot1.3b --dry-run
+```
+
+规范化的[依赖选择清单](scripts/native_sources.json)保留全部 500 条原始源码身份映射，同时排除其他 Backbone 和硬件架构的无关文件。仅对没有可信公开来源的原始文件使用 `--dependency-root /path/to/original-sources`。
+
 | 命令或参数 | 说明 |
 | --- | --- |
 | `list` / `install` / `prepare` / `run` | 列出模型 / 安装依赖 / 准备已验证输入 / 检查 native 扩展或生成视频。 |
+| `native-deps` / `assets` / `environment` | 按模型检查/下载精确原生源码 / 自动下载模型资产 / 安装 Python 依赖。 |
 | `--backbone` | `longlive1.3b`、`lingbot1.3b`、`lingbot14b` 或 `solarwm33b`。 |
 | `--env-root` / `--asset-root` | 外部模型环境与资产目录。 |
 | `--python` / `--cuda-home` / `--python-dev-root` | Python 3.10、CUDA Toolkit 路径和对应的 CPython 头文件（安装阶段）。 |
-| `--dependency-root` | 获授权的原始 native 源码，通过 SHA-256 校验（安装阶段）。 |
+| `--dependency-root` | 可选原始源码目录，用于无法从固定上游 URL 下载的文件；按 SHA-256 校验。 |
 | `--fa2-wheel` / `--fa2-sha256` | 可选的离线覆盖参数：指定本地 ABI 兼容 FA2 wheel 及其 SHA-256；默认自动下载（安装阶段）。 |
 | `--authorized-gated` / `--with-dataset` | 确认已获得上游权限 / 同时安装数据集资产（安装阶段）。 |
 | `--dataset-root` / `--case-id` | 原始数据集目录和指定案例（准备输入阶段）。 |

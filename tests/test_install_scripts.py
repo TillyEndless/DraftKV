@@ -222,6 +222,26 @@ class InstallScripts(unittest.TestCase):
                     self.assertEqual(evaluator.called,needs_evaluator)
                     self.assertEqual(assets_called.call_args.args[3],assets)
 
+    def test_direct_asset_download_uses_hf_auth_automatically(self):
+        with patch.object(helper, "asset_checks") as called, \
+             contextlib.redirect_stdout(io.StringIO()):
+            result = helper.main([
+                "assets", "--backbone", "solarwm33b",
+                "--asset-root", str(self.root / "assets"), "--models"])
+        self.assertEqual(result, 0)
+        self.assertTrue(called.call_args.kwargs["gated"])
+        self.assertTrue(called.call_args.kwargs["download"])
+
+    def test_hf_gated_asset_dry_run_requires_no_authorization_flag(self):
+        with patch.object(helper, "asset_checks") as called, \
+             contextlib.redirect_stdout(io.StringIO()):
+            result = helper.main([
+                "assets", "--backbone", "solarwm33b",
+                "--asset-root", str(self.root / "assets"), "--models", "--dry-run"])
+        self.assertEqual(result, 0)
+        self.assertTrue(called.call_args.kwargs["gated"])
+        self.assertTrue(called.call_args.kwargs["dry"])
+
     def test_setup_rejects_verification_only_scope(self):
         r=self.cli("setup_env.sh", "--backbone","lingbot1.3b",
                    "--scope","inference", "--dry-run")

@@ -179,7 +179,7 @@ def asset_checks(data, backbone, root, categories, report, **options):
                         (" Missing required paths: " + ", ".join(missing) if missing else ""))
 
 
-def source_checks(data, report, dependency_root=None, version=None):
+def source_checks(data, report, dependency_root=None, version=None, backbone=None):
     bad = []
     for path, expected in data["protected_files"].items():
         p = ROOT / path
@@ -194,16 +194,26 @@ def source_checks(data, report, dependency_root=None, version=None):
                 f"{len(records)} retained files and {len(data['protected_files'])} protected files; mismatches={len(bad)} " + ", ".join(bad[:3]))
     if version is None:
         return
-    locks = [r for r in json.loads((ROOT / "EXTERNAL_DEPENDENCY_SHA256.json").read_text()) if r["version"] == version]
-    if dependency_root is None:
-        report.item("MANUAL_REQUIRED", "external source/B01", "provide --dependency-root with <version>/<original package-relative paths>; see EXTERNAL_DEPENDENCY_SHA256.json")
-        return
+    if (ROOT / "scripts/native_sources.json").is_file():
+        from importlib.util import spec_from_file_location, module_from_spec
+        spec = spec_from_file_location("_draftkv_compact_sources", ROOT / "scripts/native_sources.py")
+        source_index = module_from_spec(spec)
+        spec.loader.exec_module(source_index)
+        locks = source_index.selected(ROOT, version, backbone=backbone)
+    else:
+        locks = [r for r in json.loads((ROOT / "EXTERNAL_DEPENDENCY_SHA256.json").read_text())
+                 if r["version"] == version]
     missing, wrong = [], []
     for rec in locks:
-        p = child(dependency_root, rec["version"] + "/" + rec["path"])
-        if not p.is_file():
+        # A prior source-verified online install is already in the local,
+        # git-ignored model tree; otherwise check the optional external root.
+        dest = ROOT / "versions" / version / rec["path"]
+        supplied = (child(dependency_root, version + "/" + rec["path"])
+                    if dependency_root is not None else None)
+        path = dest if dest.is_file() else supplied
+        if path is None or not path.is_file():
             missing.append(rec["path"])
-        elif digest(p) != rec["sha256"]:
+        elif digest(path) != rec["sha256"]:
             wrong.append(rec["path"])
     report.item("FAIL" if wrong else "MANUAL_REQUIRED" if missing else "PASS", "external source/B01 hashes",
                 f"expected={len(locks)}, missing={len(missing)}, wrong={len(wrong)}; " + ", ".join((wrong + missing)[:3]))
@@ -589,7 +599,8 @@ def main(argv=None):
     p.add_argument("--dry-run", action="store_true", help="display selection only; no readiness claim or downloads")
     p.add_argument("--portable", action="store_true",
                    help="setup only: resolve transitive deps in an isolated fresh environment and audit final pins; not historical identity")
-    p.add_argument("--authorized-gated", action="store_true", help="use existing HF authentication after you have upstream access and rights; never requests/accepts terms")
+    p.add_argument("--authorized-gated", action="store_true",
+                   help="deprecated: asset downloads already use existing Hugging Face login/HF_TOKEN")
     selection = p.add_mutually_exclusive_group()
     for name in ("all", "models", "datasets", "evaluator"):
         selection.add_argument("--" + name, action="store_true")
@@ -608,7 +619,8 @@ def main(argv=None):
         else:
             env = data["environments"][args.backbone]
             if args.action == "verify":
-                source_checks(data, report, external(args.dependency_root) if args.dependency_root else None, env["version_tree"])
+                source_checks(data, report, external(args.dependency_root) if args.dependency_root else None,
+                              env["version_tree"], backbone=args.backbone)
                 hardware_checks(env, report)
                 python = Path(args.python).expanduser() if args.python else base / "venv/bin/python"
                 probe_python(python, env, report, base)
@@ -621,7 +633,9 @@ def main(argv=None):
                               else ["models", "datasets", "evaluator"] if args.all or args.action == "verify"
                               else [k for k in ("models", "datasets", "evaluator") if getattr(args, k)])
                 asset_checks(data, args.backbone, external(args.asset_root), categories, report,
-                             download=args.action == "assets", gated=args.authorized_gated, dry=args.dry_run)
+                             download=args.action == "assets",
+                             gated=(args.action == "assets" or args.authorized_gated),
+                             dry=args.dry_run)
             else:
                 report.item("MANUAL_REQUIRED", "assets", "provide --asset-root; no source-tree files are downloaded")
     except (OSError, ValueError, subprocess.SubprocessError) as exc:
