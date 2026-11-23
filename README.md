@@ -27,7 +27,7 @@ Historical full-resolution KV can reside in CPU memory while a compact Persisten
 
 ## Installation
 
-**Platform:** Linux x86_64 with an NVIDIA CUDA GPU. The host must already have a working driver, compatible CUDA toolkit/build toolchain, Python 3.10 with venv/pip, Git and curl. The network installer handles the model-specific Python packages and available model/data downloads; it is **not** a bare-metal OS or CUDA driver installer.
+**Platform:** Linux x86_64 with an NVIDIA CUDA GPU. Install **Conda (Miniconda or Anaconda)** to provide Python 3.10; no system-wide Python 3.10 installation is required. The host must already have a working driver, compatible CUDA toolkit/build toolchain, Git and curl. Conda does not automatically install the GPU driver or system CUDA toolkit. The network installer handles the model-specific Python packages and available model/data downloads; it is **not** a bare-metal OS or CUDA driver installer.
 
 Clone the project:
 
@@ -36,27 +36,42 @@ git clone https://github.com/TillyEndless/DraftKV-public.git
 cd DraftKV-public
 ```
 
-### Create a Python environment and install dependencies
+### Step 1: Create and activate a Conda environment
 
-DraftKV uses a separate **Python 3.10 `venv` for each Backbone**, not Conda. To see the same explicit setup sequence as a typical research-code repository, run the following example for LingBot-World 1.3B:
+Conda provides the base Python 3.10 interpreter. Create and activate it before running the installation commands:
 
 ```bash
-# 1. Create/reuse an isolated venv and install pinned Python/PyTorch packages.
-./scripts/draftkv.sh environment --backbone lingbot1.3b --python python3.10
+conda create -n draftkv python=3.10 -y
+conda activate draftkv
+```
 
-# 2. Optional: activate the environment for interactive development.
-source "$HOME/.cache/draftkv-install/lingbot1.3b/venv/bin/activate"
-python -m pip check
-deactivate
+### Step 2: Install the selected Backbone's Python dependencies
 
-# 3. Download available model weights and published dataset assets.
+For LingBot-World 1.3B, pass the active Conda interpreter explicitly:
+
+```bash
+./scripts/draftkv.sh environment --backbone lingbot1.3b --python "$(which python)"
+```
+
+The installer uses this Conda Python 3.10 to create/reuse the Backbone's independent `~/.cache/draftkv-install/lingbot1.3b/venv/`. Pinned Python/PyTorch dependencies are installed in that venv, keeping them isolated from the system Python and Conda environments, including `base` and `draftkv`. Each Backbone keeps its own venv; activating that venv is optional because DraftKV's CLI selects it automatically. Keep the Conda environment available, since the venv relies on its base interpreter.
+
+### Step 3: Download model and dataset assets
+
+```bash
 ./scripts/draftkv.sh assets --backbone lingbot1.3b \
   --asset-root "$HOME/.cache/draftkv/assets" --with-dataset
 ```
 
-The environment step creates `~/.cache/draftkv-install/lingbot1.3b/venv/` with `python3.10 -m venv` and installs the pinned packages from online repositories. Activation is **optional**: DraftKV's CLI always selects the appropriate venv interpreter itself. The base environment step does not install native FlashAttention or build B01/FA3. For the full native `install` stage, the installer detects the selected GPU (physical `--gpu` index, default `0`): **Hopper SM90 (H100/H200) selects FA3; other NVIDIA architectures (including RTX 5090/SM120) select FA2 and skip FA3 compilation**. FA2 remains a model-native dependency on Hopper. Streaming CG-Attention's own autotuning is unchanged; the selected installer backend is not a claim of completed GPU inference.
+The base environment step does not install native FlashAttention or build B01/FA3. For the full native `install` stage, the installer detects the selected GPU (physical `--gpu` index, default `0`): **Hopper SM90 (H100/H200) selects FA3; other NVIDIA architectures (including RTX 5090/SM120) select FA2 and skip FA3 compilation**. FA2 remains a model-native dependency on Hopper. Streaming CG-Attention's own autotuning is unchanged; the selected installer backend is not a claim of completed GPU inference.
 
 ### One-command network bootstrap for all four Backbones
+
+First create and activate the Conda environment in Step 1. `bootstrap` defaults to `python3.10` on the active `PATH`, which should be the Conda environment's Python 3.10. If that name is missing or resolves to another interpreter, select the active Conda Python explicitly:
+
+```bash
+./scripts/draftkv.sh bootstrap --backbone lingbot1.3b --with-dataset \
+  --python "$(which python)"
+```
 
 For normal setup, the `bootstrap` command combines the environment and online asset stages, **automatically installs FA2 on all GPUs and builds FA3 additionally on Hopper SM90**, then fetches the exact byte-identical public native source subset. It uses your existing Hugging Face login or `HF_TOKEN`, verifies published SHA-256 hashes, and stores downloads outside the Git checkout.
 
@@ -111,7 +126,7 @@ By default, environments are stored in `~/.cache/draftkv-install/<backbone>/` an
 | `bootstrap --backbone MODEL` | Install the model's pinned environment and fetch available network assets and byte-identical public native sources |
 | `--with-dataset` | Also download publicly available, SHA-locked dataset assets; not a replacement for unreleased original cases |
 | `--env-root DIR` / `--asset-root DIR` | Select external environment and asset/cache locations |
-| `--python python3.10` | Select the already-installed Python 3.10 interpreter |
+| `--python "$(which python)"` | Use the active Conda Python 3.10 to create the Backbone venv |
 | `--dry-run` | Inspect the plan without installing or downloading |
 | `environment` / `assets` | Execute the Python environment or online asset phase separately |
 | `native-deps` | Inspect the original source-lock requirements for a specific Backbone |

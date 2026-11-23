@@ -27,7 +27,7 @@ DraftKV 包含三个核心模块：
 
 ## 安装
 
-**部署平台：** Linux x86_64 + NVIDIA CUDA GPU。宿主机需要已经安装可用的驱动、兼容的 CUDA Toolkit/编译工具链、Python 3.10（含 venv/pip）、Git 和 curl。在线安装命令负责模型专属 Python 包、权重及可下载的数据资产，**不负责安装操作系统或 GPU 驱动**。
+**部署平台：** Linux x86_64 + NVIDIA CUDA GPU。请先安装 **Conda（Miniconda 或 Anaconda）**，由 Conda 提供 Python 3.10，无需预先安装系统级 Python 3.10。宿主机需要已经安装可用的驱动、兼容的 CUDA Toolkit/编译工具链、Git 和 curl。Conda 不会自动安装 GPU 驱动或系统级 CUDA Toolkit。在线安装命令负责模型专属 Python 包、权重及可下载的数据资产，**不负责安装操作系统或 GPU 驱动**。
 
 克隆仓库：
 
@@ -36,27 +36,42 @@ git clone https://github.com/TillyEndless/DraftKV-public.git
 cd DraftKV-public
 ```
 
-### 创建 Python 虚拟环境并安装依赖
+### Step 1：创建并激活 Conda 环境
 
-DraftKV 为每个 Backbone 使用独立的 **Python 3.10 `venv` 虚拟环境**，目前不是 Conda。以 LingBot-World 1.3B 为例，可以像常见的科研仓库那样逐步安装：
+Conda 负责提供 Python 3.10 基础解释器。运行安装命令前，先创建并激活环境：
 
 ```bash
-# 1. 创建或复用 venv，在线安装固定版本 Python/PyTorch 依赖
-./scripts/draftkv.sh environment --backbone lingbot1.3b --python python3.10
+conda create -n draftkv python=3.10 -y
+conda activate draftkv
+```
 
-# 2. 可选：激活虚拟环境，用于交互式开发
-source "$HOME/.cache/draftkv-install/lingbot1.3b/venv/bin/activate"
-python -m pip check
-deactivate
+### Step 2：安装对应 Backbone 的 Python 依赖
 
-# 3. 从网络下载可用的模型权重和公开数据集资产
+以 LingBot-World 1.3B 为例，显式传入当前 Conda 环境的解释器：
+
+```bash
+./scripts/draftkv.sh environment --backbone lingbot1.3b --python "$(which python)"
+```
+
+安装器使用该 Conda Python 3.10，在 `~/.cache/draftkv-install/lingbot1.3b/venv/` 创建或复用 Backbone 专属 venv，再将固定版本 Python/PyTorch 依赖安装到这个 venv 中，与系统 Python 和 Conda 环境（包括 `base`、`draftkv`）隔离。每个 Backbone 继续使用独立 venv；**激活该 venv 是可选的**，DraftKV CLI 会自动选择它。请保留 Conda 环境，venv 仍依赖其中的基础解释器。
+
+### Step 3：下载模型和数据集资产
+
+```bash
 ./scripts/draftkv.sh assets --backbone lingbot1.3b \
   --asset-root "$HOME/.cache/draftkv/assets" --with-dataset
 ```
 
-第一步会通过 `python3.10 -m venv` 在 `~/.cache/draftkv-install/lingbot1.3b/venv/` 创建隔离环境，再通过在线软件包索引安装对应依赖。**激活环境不是必需的**：DraftKV CLI 会自动选择该 Backbone 对应的 venv Python。基础环境安装不包括 native FlashAttention 和 B01/FA3 编译。正式原生 `install` 阶段会检测所选 GPU（物理编号 `--gpu`，默认 `0`）：**Hopper SM90（H100/H200）选择 FA3，其他 NVIDIA 架构（包括 RTX 5090/SM120）选择 FA2 并跳过 FA3 编译**。Hopper 上仍保留模型原生调用所需的 FA2 依赖。Streaming CG-Attention 的 autotune 不受修改；自动选择安装后端不代表已通过 GPU 推理验收。
+基础环境安装不包括 native FlashAttention 和 B01/FA3 编译。正式原生 `install` 阶段会检测所选 GPU（物理编号 `--gpu`，默认 `0`）：**Hopper SM90（H100/H200）选择 FA3，其他 NVIDIA 架构（包括 RTX 5090/SM120）选择 FA2 并跳过 FA3 编译**。Hopper 上仍保留模型原生调用所需的 FA2 依赖。Streaming CG-Attention 的 autotune 不受修改；自动选择安装后端不代表已通过 GPU 推理验收。
 
 ### 四组 Backbone 的一键网络部署
+
+必须先完成 Step 1，创建并激活 Conda 环境。`bootstrap` 默认使用当前 `PATH` 中的 `python3.10`，正常应指向 Conda 环境提供的 Python 3.10。如果找不到该命令或解析到其他解释器，请显式传入当前 Conda Python：
+
+```bash
+./scripts/draftkv.sh bootstrap --backbone lingbot1.3b --with-dataset \
+  --python "$(which python)"
+```
 
 正常部署时，`bootstrap` 合并环境安装与在线资产下载，**自动为各类 GPU 安装 FA2，在 Hopper SM90 上额外编译并安装 FA3**，并获取与原始 SHA-256 一致的公开 native 源码。安装器使用已有 Hugging Face 登录状态或 `HF_TOKEN`，校验公开文件哈希；所有缓存均在 Git 仓库之外。
 
@@ -111,7 +126,7 @@ deactivate
 | `bootstrap --backbone MODEL` | 安装模型专属 Python 环境，下载可用的在线资产及精确匹配的公开 native 源码 |
 | `--with-dataset` | 同时下载已公开、带 SHA-256 锁定的数据集资产；不代表包含未发布的原始案例 |
 | `--env-root DIR` / `--asset-root DIR` | 指定外部环境、模型资产与缓存的存储目录 |
-| `--python python3.10` | 选择宿主机已有的 Python 3.10 |
+| `--python "$(which python)"` | 使用当前 Conda Python 3.10 创建 Backbone 专属 venv |
 | `--dry-run` | 仅查看安装计划，不创建环境或下载 |
 | `environment` / `assets` | 单独执行 Python 环境安装或在线资产下载 |
 | `native-deps` | 检查指定 Backbone 的原始 native 源码锁依赖 |
