@@ -55,15 +55,6 @@ conda activate draftkv
 
 现在安装器会将固定版本的 Python/PyTorch 依赖**直接安装到已激活的 `draftkv` Conda 环境中**，不再创建嵌套 venv。命令 `environment`、`bootstrap`、`install`、`prepare`、`run` 均使用同一 Conda 解释器；Native 编译产物、安装记录和缓存仍保存在 `~/.cache/draftkv-install/lingbot1.3b/`。要求 Conda 环境使用 Python 3.10，且不能为 `base`。
 
-如果服务器连接 PyTorch 官方下载站很慢，可以显式使用相同 CUDA 版本的阿里云 wheel 镜像：
-
-```bash
-./scripts/draftkv.sh environment --backbone lingbot1.3b \
-  --torch-index-url https://mirrors.aliyun.com/pytorch-wheels/cu124
-```
-
-PyTorch 的精确版本锁不变。第三方 wheel 镜像需要用户主动指定；安装器不会独立验证镜像二进制的 SHA-256，如需字节级来源保证请使用官方源。
-
 **每个 Backbone 需要独立的 Conda 环境。** 四组模型的 PyTorch/CUDA 和部分依赖版本并不一致；其他模型请分别使用 `draftkv-longlive`、`draftkv-lingbot14`、`draftkv-solarwm` 等环境名称。安装器会阻止将其他 Backbone 安装进已绑定的环境。
 
 ### Step 3：下载模型和数据集资产
@@ -138,7 +129,6 @@ Python 包直接安装在已激活的 Conda 环境中；Native 构建、安装�
 | `--with-dataset` | 同时下载已公开、带 SHA-256 锁定的数据集资产；不代表包含未发布的原始案例 |
 | `--env-root DIR` / `--asset-root DIR` | 指定外部环境、模型资产与缓存的存储目录 |
 | `--python "$(which python)"` | 可选：显式指定当前激活的 Conda Python 3.10 |
-| `--torch-index-url URL` | 可选：PyTorch 官方或阿里云的 CUDA 对应版本 wheel 镜像 |
 | `--env-mode {auto,conda,venv}` | 默认自动使用已激活的非 base Conda 环境，`venv` 保留旧版独立虚拟环境流程 |
 | `--dry-run` | 仅查看安装计划，不创建环境或下载 |
 | `environment` / `assets` | 单独执行 Python 环境安装或在线资产下载 |
