@@ -13,7 +13,7 @@
 ## 工作原理
 
 <p align="center">
-  <img src="assets/readme/workflow.svg" width="100%" alt="DraftKV 流程：当前 Query 经 Draft Grounding 几何筛选、Draft Refinement 相关性排序，再将选中的完整历史 KV 从 CPU 分块传输至 GPU Attention">
+  <img src="assets/readme/workflow.png" width="100%" alt="DraftKV 流程：当前 Query 经 Draft Grounding 几何筛选、Draft Refinement 相关性排序，再将选中的完整历史 KV 从 CPU 分块传输至 GPU Attention">
 </p>
 
 1. **Draft Grounding：** 利用相机视锥和几何对应关系，从历史中筛选空间相关的候选范围。

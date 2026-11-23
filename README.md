@@ -13,7 +13,7 @@
 ## How it works
 
 <p align="center">
-  <img src="assets/readme/workflow.svg" width="100%" alt="DraftKV pipeline: query, geometry-based Draft Grounding, attention-based Draft Refinement, and tile-wise CPU-to-GPU KV streaming into GPU attention">
+  <img src="assets/readme/workflow.png" width="100%" alt="DraftKV pipeline: query, geometry-based Draft Grounding, attention-based Draft Refinement, and tile-wise CPU-to-GPU KV streaming into GPU attention">
 </p>
 
 1. **Draft Grounding** uses camera/frustum correspondence to narrow historical retrieval to geometrically relevant candidates.
