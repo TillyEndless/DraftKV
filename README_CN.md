@@ -31,7 +31,7 @@ DraftKV 包含三个核心模块：
 
 ## 安装
 
-当前文档中的原生部署环境为 **Linux x86_64 + NVIDIA H200（SM90）**。安装前需准备 Python 3.10、兼容的 CUDA Toolkit 和编译器、Ninja，以及对应版本的 CPython 开发头文件。模型权重、受限数据集、原始 native 依赖和 ABI 兼容的 FlashAttention-2 wheel 需依据各自的许可单独获取。
+当前文档中的原生部署环境为 **Linux x86_64 + NVIDIA H200（SM90）**。安装前需准备 Python 3.10、兼容的 CUDA Toolkit 和编译器、Ninja，以及对应版本的 CPython 开发头文件。模型权重、受限数据集和受限 native 依赖需要依据许可单独获取。安装器会针对所选 PyTorch 环境**自动下载带有固定 SHA-256 校验的官方 FlashAttention-2 wheel**。
 
 克隆仓库：
 
@@ -48,18 +48,15 @@ cd DraftKV-public
   --backbone lingbot1.3b \
   --python python3.10 \
   --cuda-home /usr/local/cuda-12.6 \
-  --env-root /external/draftkv-envs \
-  --asset-root /external/draftkv-assets \
-  --dependency-root /external/authorized-native-sources \
-  --fa2-wheel /external/wheels/flash_attn-2.8.3-cp310-cp310-linux_x86_64.whl \
-  --fa2-sha256 REPLACE_WITH_ACTUAL_SHA256 \
-  --python-dev-root /external/python-dev/usr/include \
+  --env-root ${HOME}/.cache/draftkv/envs \
+  --asset-root ${HOME}/.cache/draftkv/assets \
+  --dependency-root /path/to/authorized-native-sources \
   --authorized-gated
 ```
 
-请将示例路径和 SHA-256 占位符替换为实际值。FA2 wheel 必须与选择的 Python/PyTorch ABI 兼容。`--authorized-gated` 表示用户已经获得上游授权，并不会自动申请权限。添加 `--dry-run` 可以在不执行安装的情况下查看配置。
+请将示例路径替换为真实值。安装器会从 [FlashAttention 官方 Releases](https://github.com/Dao-AILab/flash-attention/releases) **自动下载、校验 SHA-256、缓存并安装匹配的 FA2 wheel**，无需用户手动提供 wheel 和哈希。离线环境可使用 `--fa2-wheel PATH --fa2-sha256 DIGEST` 指定本地文件。`--authorized-gated` 表示用户已获得上游许可；添加 `--dry-run` 可预览安装配置。
 
-安装器会构建固定版本的参考 FA3 和所需的 B01 native 组件；这不意味着所编译的二进制文件与历史修改版本完全一致。依赖要求及验证命令见[安装说明](docs/INSTALL.md)。
+如果系统缺少 Python 3.10 的开发头文件，可以额外指定 `--python-dev-root /path/to/python3.10/includes`。安装器会构建固定版本的参考 FA3 和所需的 B01 native 组件；这不意味着所编译的二进制文件与历史修改版本完全一致。依赖要求及验证命令见[安装说明](docs/INSTALL.md)。
 
 ## LingBot-World 快速开始
 
@@ -68,7 +65,7 @@ cd DraftKV-public
 ```bash
 ./scripts/draftkv.sh prepare \
   --backbone lingbot1.3b \
-  --env-root /external/draftkv-envs \
+  --env-root ${HOME}/.cache/draftkv/envs \
   --dataset-root /external/orbia \
   --index /external/orbia/installed-files.json \
   --index-sha256 REPLACE_WITH_ACTUAL_INDEX_SHA256 \
@@ -84,8 +81,8 @@ cd DraftKV-public
 ```bash
 ./scripts/draftkv.sh run \
   --backbone lingbot1.3b \
-  --env-root /external/draftkv-envs \
-  --asset-root /external/draftkv-assets \
+  --env-root ${HOME}/.cache/draftkv/envs \
+  --asset-root ${HOME}/.cache/draftkv/assets \
   --input /external/prepared/lingbot13/cases/YOUR_ORBIA_CASE_ID/request.json \
   --output /external/runs/lingbot13-startup/native.mp4 \
   --gpu 0 --profile off --startup-only
@@ -96,8 +93,8 @@ cd DraftKV-public
 ```bash
 ./scripts/draftkv.sh run \
   --backbone lingbot1.3b \
-  --env-root /external/draftkv-envs \
-  --asset-root /external/draftkv-assets \
+  --env-root ${HOME}/.cache/draftkv/envs \
+  --asset-root ${HOME}/.cache/draftkv/assets \
   --input /external/prepared/lingbot13/cases/YOUR_ORBIA_CASE_ID/request.json \
   --output /external/runs/lingbot13-generation/native.mp4 \
   --gpu 0 --profile off
@@ -114,7 +111,7 @@ cd DraftKV-public
 | `--env-root` / `--asset-root` | 外部模型环境与资产目录。 |
 | `--python` / `--cuda-home` / `--python-dev-root` | Python 3.10、CUDA Toolkit 路径和对应的 CPython 头文件（安装阶段）。 |
 | `--dependency-root` | 获授权的原始 native 源码，通过 SHA-256 校验（安装阶段）。 |
-| `--fa2-wheel` / `--fa2-sha256` | ABI 兼容的 FA2 wheel 和实际小写 SHA-256（安装阶段）。 |
+| `--fa2-wheel` / `--fa2-sha256` | 可选的离线覆盖参数：指定本地 ABI 兼容 FA2 wheel 及其 SHA-256；默认自动下载（安装阶段）。 |
 | `--authorized-gated` / `--with-dataset` | 确认已获得上游权限 / 同时安装数据集资产（安装阶段）。 |
 | `--dataset-root` / `--case-id` | 原始数据集目录和指定案例（准备输入阶段）。 |
 | `--index` / `--index-sha256` / `--lock` | ORBIA 原始索引、哈希及必要时的外部分发锁（准备输入阶段）。 |

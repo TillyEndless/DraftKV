@@ -271,12 +271,92 @@ class UserCLITests(unittest.TestCase):
                                           "--input",str(self.prepared),
                                           "--output",str(self.output)])
 
-    def test_install_refuses_unaudited_fa2_before_side_effects(self):
-        args = self.args_install("--dependency-root", str(self.home / "original"))
+    def test_install_rejects_incomplete_offline_fa2_override_before_side_effects(self):
+        args = self.args_install("--dependency-root", str(self.home / "original"),
+                                 "--fa2-wheel", str(self.home / "missing.whl"))
         with patch.object(cli, "commands") as execution:
             with self.assertRaisesRegex(ValueError, "fa2-wheel"):
                 cli.install(args)
             execution.assert_not_called()
+
+    def test_official_fa2_release_locks_cover_all_backbones(self):
+        for backbone in cli.BACKBONES:
+            with self.subTest(backbone=backbone):
+                lock = cli.pinned_official_fa2_wheel(backbone)
+                self.assertEqual(len(lock["sha256"]), 64)
+                self.assertIn("Dao-AILab/flash-attention/releases/download", lock["url"])
+                suffix = "cxx11abiTRUE" if backbone == "longlive1.3b" else "cxx11abiFALSE"
+                self.assertIn(suffix + "-cp310-cp310-linux_x86_64.whl", lock["filename"])
+                self.assertGreater(lock["bytes"], 100_000_000)
+        self.assertEqual(cli.pinned_official_fa2_wheel("longlive1.3b")["version"],
+                         "2.8.3.post1")
+        self.assertEqual(cli.pinned_official_fa2_wheel("lingbot1.3b")["version"],
+                         "2.8.3")
+
+    def test_default_install_dry_run_does_not_require_local_fa2_wheel(self):
+        args = self.args_install("--dry-run")
+        with patch.object(cli, "commands") as commands_called, \
+             patch.object(cli.urllib.request, "urlopen") as download:
+            cli.install(args)
+        commands_called.assert_not_called()
+        download.assert_not_called()
+
+    def test_official_wheel_download_verified_and_cached_without_network_reuse(self):
+        import hashlib
+        import io
+        content = b"verified sample fa2 wheel contents"
+        filename = "flash_attn-2.8.3+cu12torch2.6cxx11abiFALSE-cp310-cp310-linux_x86_64.whl"
+        asset = dict(version="2.8.3", filename=filename,
+                     url="https://github.com/Dao-AILab/flash-attention/releases/download/v2.8.3/"
+                         + filename.replace("+", "%2B"),
+                     sha256=hashlib.sha256(content).hexdigest(), bytes=len(content))
+        args = self.args_install()
+        base = self.home / "env/lingbot1.3b"
+        with patch.object(cli, "pinned_official_fa2_wheel", return_value=asset), \
+             patch.object(cli, "verify_official_fa2_abi") as abi, \
+             patch.object(cli.urllib.request, "urlopen", side_effect=lambda *a, **kw: io.BytesIO(content)) as dl:
+            wheel, digest = cli.obtain_fa2_wheel(args, self.venv, base)
+            self.assertEqual(wheel.read_bytes(), content)
+            self.assertEqual(digest, asset["sha256"])
+            wheel2, digest2 = cli.obtain_fa2_wheel(args, self.venv, base)
+            self.assertEqual((wheel2, digest2), (wheel, digest))
+            self.assertEqual(dl.call_count, 1)
+            self.assertEqual(abi.call_count, 2)
+        self.assertFalse(list(wheel.parent.glob(".fa2-*")))
+
+    def test_official_wheel_rejects_bad_hash_without_caching(self):
+        import io
+        filename = "flash_attn-2.8.3+cu12torch2.6cxx11abiFALSE-cp310-cp310-linux_x86_64.whl"
+        asset = dict(version="2.8.3", filename=filename,
+                     url="https://github.com/Dao-AILab/flash-attention/releases/download/v2.8.3/"
+                         + filename.replace("+", "%2B"),
+                     sha256="0" * 64, bytes=len(b"corrupt wheel"))
+        base = self.home / "env/lingbot1.3b"
+        with patch.object(cli, "pinned_official_fa2_wheel", return_value=asset), \
+             patch.object(cli, "verify_official_fa2_abi"), \
+             patch.object(cli.urllib.request, "urlopen",
+                          side_effect=lambda *a, **kw: io.BytesIO(b"corrupt wheel")):
+            with self.assertRaisesRegex(ValueError, "SHA-256/size mismatch"):
+                cli.obtain_fa2_wheel(self.args_install(), self.venv, base)
+        self.assertEqual(list((base/"cache/verified_wheels").iterdir()), [])
+
+    def test_official_fa2_binary_abi_is_checked_before_download(self):
+        facts = dict(python=[3, 10], torch="2.6.0+cu124", cuda="12.4", cxx11abi=True)
+        with patch.object(cli.platform, "system", return_value="Linux"), \
+             patch.object(cli.platform, "machine", return_value="x86_64"), \
+             patch.object(cli, "commands", return_value=SimpleNamespace(stdout=json.dumps(facts))):
+            with self.assertRaisesRegex(ValueError, "cxx11abiFALSE"):
+                cli.verify_official_fa2_abi(self.venv, "lingbot1.3b")
+        facts["cxx11abi"] = False
+        with patch.object(cli.platform, "system", return_value="Linux"), \
+             patch.object(cli.platform, "machine", return_value="x86_64"), \
+             patch.object(cli, "commands", return_value=SimpleNamespace(stdout=json.dumps(facts))):
+            cli.verify_official_fa2_abi(self.venv, "lingbot1.3b")
+        facts.update(torch="2.8.0+cu128", cuda="12.8", cxx11abi=True)
+        with patch.object(cli.platform, "system", return_value="Linux"), \
+             patch.object(cli.platform, "machine", return_value="x86_64"), \
+             patch.object(cli, "commands", return_value=SimpleNamespace(stdout=json.dumps(facts))):
+            cli.verify_official_fa2_abi(self.venv, "longlive1.3b")
 
     def test_fa2_wheel_hash_and_name_are_mandatory(self):
         wheel = self.home / "flash_attn-2.8.3-cp310-cp310-linux_x86_64.whl"

@@ -31,7 +31,7 @@ Use `./scripts/draftkv.sh list` to display the corresponding CLI backbone identi
 
 ## Installation
 
-The documented native deployment target is **Linux x86_64 with an NVIDIA H200 (SM90)**. Install Python 3.10, the matching CUDA toolkit and compiler, Ninja, and CPython development headers before running the installer. Model checkpoints, gated benchmark inputs, original native dependencies, and an ABI-compatible FlashAttention-2 wheel must be obtained separately under their respective licenses.
+The documented native deployment target is **Linux x86_64 with an NVIDIA H200 (SM90)**. Install Python 3.10, the matching CUDA toolkit and compiler, Ninja, and CPython development headers before running the installer. Model checkpoints, gated benchmark inputs, and restricted native dependencies must be obtained separately under their respective licenses. The installer automatically downloads a **SHA-256-pinned official FlashAttention-2 wheel** for the selected PyTorch environment.
 
 Clone the source repository:
 
@@ -48,18 +48,15 @@ For example, install the LingBot-World 1.3B environment and model assets:
   --backbone lingbot1.3b \
   --python python3.10 \
   --cuda-home /usr/local/cuda-12.6 \
-  --env-root /external/draftkv-envs \
-  --asset-root /external/draftkv-assets \
-  --dependency-root /external/authorized-native-sources \
-  --fa2-wheel /external/wheels/flash_attn-2.8.3-cp310-cp310-linux_x86_64.whl \
-  --fa2-sha256 REPLACE_WITH_ACTUAL_SHA256 \
-  --python-dev-root /external/python-dev/usr/include \
+  --env-root ${HOME}/.cache/draftkv/envs \
+  --asset-root ${HOME}/.cache/draftkv/assets \
+  --dependency-root /path/to/authorized-native-sources \
   --authorized-gated
 ```
 
-Replace the example paths and SHA-256 placeholder with real values. The FA2 wheel must match the chosen Python/PyTorch ABI. `--authorized-gated` indicates that upstream access has already been granted; it does not request access on your behalf. Add `--dry-run` to inspect the install configuration without performing it.
+Replace the example paths with real values. The matching FA2 wheel is **downloaded, SHA-256 verified, cached and installed automatically** from the official [FlashAttention releases](https://github.com/Dao-AILab/flash-attention/releases); no local wheel or digest is required. For offline installation, use `--fa2-wheel PATH --fa2-sha256 DIGEST`. `--authorized-gated` indicates that upstream access has already been granted. Add `--dry-run` to inspect the configuration without installing.
 
-The installer builds pinned reference FA3 and the necessary B01 native components; this is not a claim of binary identity with any earlier modified implementation. See [Installation](docs/INSTALL.md) for dependency requirements and verification commands.
+If the system lacks Python 3.10 development headers, additionally set `--python-dev-root /path/to/python3.10/includes`. The installer builds pinned reference FA3 and the necessary B01 native components; this is not a claim of binary identity with any earlier modified implementation. See [Installation](docs/INSTALL.md) for dependency requirements and verification commands.
 
 ## LingBot-World Quick Start
 
@@ -68,7 +65,7 @@ After installation, prepare a case from an **authorized original ORBIA dataset**
 ```bash
 ./scripts/draftkv.sh prepare \
   --backbone lingbot1.3b \
-  --env-root /external/draftkv-envs \
+  --env-root ${HOME}/.cache/draftkv/envs \
   --dataset-root /external/orbia \
   --index /external/orbia/installed-files.json \
   --index-sha256 REPLACE_WITH_ACTUAL_INDEX_SHA256 \
@@ -84,8 +81,8 @@ Optionally check native extension compilation and import **without generating a 
 ```bash
 ./scripts/draftkv.sh run \
   --backbone lingbot1.3b \
-  --env-root /external/draftkv-envs \
-  --asset-root /external/draftkv-assets \
+  --env-root ${HOME}/.cache/draftkv/envs \
+  --asset-root ${HOME}/.cache/draftkv/assets \
   --input /external/prepared/lingbot13/cases/YOUR_ORBIA_CASE_ID/request.json \
   --output /external/runs/lingbot13-startup/native.mp4 \
   --gpu 0 --profile off --startup-only
@@ -96,8 +93,8 @@ A successful startup check reports `PORTABLE_NATIVE_STARTUP_READY`; it does not 
 ```bash
 ./scripts/draftkv.sh run \
   --backbone lingbot1.3b \
-  --env-root /external/draftkv-envs \
-  --asset-root /external/draftkv-assets \
+  --env-root ${HOME}/.cache/draftkv/envs \
+  --asset-root ${HOME}/.cache/draftkv/assets \
   --input /external/prepared/lingbot13/cases/YOUR_ORBIA_CASE_ID/request.json \
   --output /external/runs/lingbot13-generation/native.mp4 \
   --gpu 0 --profile off
@@ -114,7 +111,7 @@ Keep environments, checkpoints, datasets, native build caches, prepared inputs, 
 | `--env-root` / `--asset-root` | External model environment and asset directories. |
 | `--python` / `--cuda-home` / `--python-dev-root` | Python 3.10, CUDA toolkit path, and matching CPython headers (install). |
 | `--dependency-root` | Authorized original native sources, validated with SHA-256 (install). |
-| `--fa2-wheel` / `--fa2-sha256` | ABI-compatible FA2 wheel and its actual lowercase SHA-256 (install). |
+| `--fa2-wheel` / `--fa2-sha256` | Optional offline override: local ABI-compatible FA2 wheel and SHA-256; normally fetched automatically (install). |
 | `--authorized-gated` / `--with-dataset` | Confirm existing upstream permission / also install dataset assets (install). |
 | `--dataset-root` / `--case-id` | Original dataset location and requested case (prepare). |
 | `--index` / `--index-sha256` / `--lock` | Original ORBIA index, its checksum, and external dataset lock when needed (prepare). |

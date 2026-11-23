@@ -12,6 +12,9 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+import platform
+import tempfile
+import urllib.request
 
 ROOT = Path(__file__).resolve().parents[1]
 BACKBONES = ("longlive1.3b", "lingbot1.3b", "lingbot14b", "solarwm33b")
@@ -133,6 +136,100 @@ def verify_user_fa2_wheel(wheel, digest):
     return path
 
 
+def pinned_official_fa2_wheel(backbone):
+    """Read an official URL and immutable wheel SHA from the existing install manifest."""
+    manifest = json.loads((ROOT / "scripts/install_manifest.json").read_text())
+    environment = manifest["environments"][backbone]["packages"]
+    selected = manifest["fa2_official_wheels"].get(environment["torch"])
+    require(selected is not None, "no pinned official FA2 wheel for this Torch environment; "
+            "supply --fa2-wheel and --fa2-sha256 for a separately authorized build")
+    require(selected["version"] == environment["flash-attn"],
+            "official FA2 package version differs from source environment lock")
+    name = selected["filename"]
+    require(re.fullmatch(r"flash_attn-[A-Za-z0-9.+_-]+-cp310-cp310-linux_x86_64\.whl", name),
+            "pinned FA2 wheel must target Linux x86_64 CPython 3.10")
+    require(selected["url"] ==
+            "https://github.com/Dao-AILab/flash-attention/releases/download/v"
+            + selected["version"] + "/" + name.replace("+", "%2B"),
+            "pinned official FA2 URL does not match the upstream release")
+    require("cxx11abiTRUE" in name or "cxx11abiFALSE" in name,
+            "pinned official FA2 wheel C++ ABI tag is missing")
+    require(bool(re.fullmatch(r"[0-9a-f]{64}", selected["sha256"])) and
+            isinstance(selected["bytes"], int) and selected["bytes"] > 0,
+            "pinned FA2 SHA-256 or byte count is invalid")
+    return selected
+
+
+def verify_official_fa2_abi(python, backbone):
+    """Prevent installing a prebuilt FA2 binary into an incompatible runtime."""
+    manifest = json.loads((ROOT / "scripts/install_manifest.json").read_text())
+    torch_pin = manifest["environments"][backbone]["packages"]["torch"]
+    require(platform.system() == "Linux" and platform.machine() == "x86_64",
+            "official FA2 auto-download requires Linux x86_64")
+    asset = pinned_official_fa2_wheel(backbone)
+    expected_cxx11abi = "cxx11abiTRUE" in asset["filename"]
+    result = commands([python, "-B", "-c",
+        "import json,sys,torch; print(json.dumps({"
+        "'python':list(sys.version_info[:2]),"
+        "'torch':torch.__version__,"
+        "'cuda':torch.version.cuda,"
+        "'cxx11abi':bool(torch._C._GLIBCXX_USE_CXX11_ABI)}))"], capture=True)
+    facts = json.loads(result.stdout)
+    require(facts.get("python") == [3, 10] and
+            facts.get("torch") == torch_pin and
+            isinstance(facts.get("cuda"), str) and facts["cuda"].startswith("12.") and
+            facts.get("cxx11abi") is expected_cxx11abi,
+            "official FA2 wheel requires Python 3.10, the locked Torch/CUDA 12 "
+            "runtime and a matching cxx11abi" + str(expected_cxx11abi).upper())
+
+
+def obtain_fa2_wheel(args, python, base):
+    """Use an explicitly supplied checked wheel, or download an official SHA-locked one."""
+    if args.fa2_wheel is not None or args.fa2_sha256 is not None:
+        wheel = verify_user_fa2_wheel(args.fa2_wheel, args.fa2_sha256)
+        return wheel, args.fa2_sha256
+    asset = pinned_official_fa2_wheel(args.backbone)
+    verify_official_fa2_abi(python, args.backbone)
+    directory = base / "cache/verified_wheels"
+    require(directory.resolve().is_relative_to(base.resolve()) and
+            not directory.is_symlink(), "FA2 wheel cache escapes model environment")
+    directory.mkdir(parents=True, exist_ok=True)
+    destination = directory / asset["filename"]
+    require(not destination.is_symlink(), "refusing symlinked FA2 wheel cache entry")
+    if destination.exists():
+        require(destination.is_file() and destination.stat().st_size == asset["bytes"] and
+                sha256(destination) == asset["sha256"],
+                "cached official FA2 wheel SHA-256 mismatch; refusing to use it")
+        return destination, asset["sha256"]
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(dir=directory, prefix=".fa2-", suffix=".part",
+                                         delete=False) as out:
+            temporary = Path(out.name)
+            digest = hashlib.sha256()
+            count = 0
+            print("Downloading SHA-256-pinned FlashAttention-2 from official GitHub release:", asset["url"],
+                  flush=True)
+            with urllib.request.urlopen(asset["url"], timeout=45) as stream:
+                while True:
+                    block = stream.read(8 * 1024 * 1024)
+                    if not block:
+                        break
+                    count += len(block)
+                    require(count <= asset["bytes"], "official FA2 wheel exceeds pinned size")
+                    digest.update(block)
+                    out.write(block)
+        require(count == asset["bytes"] and digest.hexdigest() == asset["sha256"],
+                "official FA2 wheel SHA-256/size mismatch; refusing installation")
+        require(not destination.exists(), "FA2 wheel cache target appeared during download")
+        temporary.replace(destination)
+        print("Verified official FlashAttention-2 wheel SHA-256:", digest.hexdigest(), flush=True)
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
+    return destination, asset["sha256"]
+
+
 def resolve_python_headers(python, supplied_root=None):
     """Require matching Python.h + pyconfig.h; never substitute an ABI."""
     result = commands([python, "-B", "-c",
@@ -159,8 +256,8 @@ def resolve_python_headers(python, supplied_root=None):
 
 
 def install_model_closure(args, python, base, headers):
-    """Install source-verified user-owned FA2 wheel and explicit portable extras."""
-    wheel = verify_user_fa2_wheel(args.fa2_wheel, args.fa2_sha256)
+    """Install a verified official or user-supplied FA2 wheel and portable extras."""
+    wheel, wheel_sha256 = obtain_fa2_wheel(args, python, base)
     pip = [python, "-m", "pip", "--require-virtualenv", "install", "--no-deps"]
     commands([*pip, "--force-reinstall", wheel])
     extras = {"setuptools": "84.0.0", "ninja": "1.13.2", **PORTABLE_EXTRAS[args.backbone]}
@@ -193,14 +290,14 @@ def install_model_closure(args, python, base, headers):
     observed = json.loads(probe.stdout)
     require(observed["python"] == [3, 10] and
             observed["versions"]["torch"] == expected["torch"] and
-            observed["versions"]["flash-attn"] == expected["flash-attn"],
+            observed["versions"]["flash-attn"].split("+", 1)[0] == expected["flash-attn"],
             "new FA2 distribution does not match backbone's original Torch/FA2 ABI pins")
     for name, version in extras.items():
         require(observed["versions"][name] == version, "portable native extra version mismatch: " + name)
     return dict(schema_version=1, python=str(python),
                 python_includes=headers, cuda_home=str(Path(args.cuda_home).resolve()),
                 torch_extensions_dir=str((base / "cache/torch_extensions").resolve()),
-                fa2_wheel_sha256=args.fa2_sha256,
+                fa2_wheel_sha256=wheel_sha256,
                 fa2_version=expected["flash-attn"], torch_version=expected["torch"],
                 portable_extras=extras, runtime_cache_paths=cache_paths_for(python),
                 historical_fa3_binary_equivalence=False)
@@ -246,8 +343,12 @@ def install(args):
             "install requires --dependency-root of user-authorized SHA-locked native sources")
     require(args.build_fa3,
             "complete installation requires FA3 compilation; --no-build-fa3 cannot be marked successful")
-    # Preflight the third-party binary before downloading or changing anything.
-    verify_user_fa2_wheel(args.fa2_wheel, args.fa2_sha256)
+    # Validate the pinned official source or explicit user-provided binary
+    # before changing the environment. Actual download follows Torch setup.
+    if args.fa2_wheel is not None or args.fa2_sha256 is not None:
+        verify_user_fa2_wheel(args.fa2_wheel, args.fa2_sha256)
+    else:
+        pinned_official_fa2_wheel(args.backbone)
     # Existing source installer returns code 3 for unknown original optional
     # dependency provenance even when required wheels were installed.
     # Do not pretend it is historical reconstruction; continue only with a
@@ -476,8 +577,9 @@ def make_parser():
                            help="user has independently obtained upstream approval")
             c.add_argument("--build-fa3", action=argparse.BooleanOptionalAction, default=True)
             c.add_argument("--jobs", type=int, default=4)
-            c.add_argument("--fa2-wheel", help="user-authorized, ABI-matching flash_attn 2.x wheel")
-            c.add_argument("--fa2-sha256", help="lowercase SHA-256 of supplied FA2 wheel")
+            c.add_argument("--fa2-wheel", help="optional offline/override ABI-matched FA2 wheel; "
+                           "default: automatically download SHA-locked official release")
+            c.add_argument("--fa2-sha256", help="SHA-256 required only with --fa2-wheel")
             c.add_argument("--python-dev-root", help="matching CPython 3.10 include root (Python.h and pyconfig.h)")
         else:
             c.add_argument("--asset-root", help="download root for request->plan preparation")

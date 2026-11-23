@@ -2,6 +2,22 @@
   "schema": 1,
   "scope": "Installation and asset provisioning only; no generation or scientific plan changes.",
   "baseline_main": "531294aaec502cdb970c514f5b86ccc15197fcde",
+  "fa2_official_wheels": {
+    "2.6.0+cu124": {
+      "version": "2.8.3",
+      "filename": "flash_attn-2.8.3+cu12torch2.6cxx11abiFALSE-cp310-cp310-linux_x86_64.whl",
+      "url": "https://github.com/Dao-AILab/flash-attention/releases/download/v2.8.3/flash_attn-2.8.3%2Bcu12torch2.6cxx11abiFALSE-cp310-cp310-linux_x86_64.whl",
+      "sha256": "1c8d2fb083edea3647688fcd4bb21d4641eb01f50359d8fa6200ecd093ba1c54",
+      "bytes": 256007522
+    },
+    "2.8.0+cu128": {
+      "version": "2.8.3.post1",
+      "filename": "flash_attn-2.8.3.post1+cu12torch2.8cxx11abiTRUE-cp310-cp310-linux_x86_64.whl",
+      "url": "https://github.com/Dao-AILab/flash-attention/releases/download/v2.8.3.post1/flash_attn-2.8.3.post1%2Bcu12torch2.8cxx11abiTRUE-cp310-cp310-linux_x86_64.whl",
+      "sha256": "93f44772f2d63814086666b30dfa1808b96ca5cbd2efe292a96cafa7e6e7df2e",
+      "bytes": 256026375
+    }
+  },
   "environments": {
     "longlive1.3b": {
       "version_tree": "longlive",

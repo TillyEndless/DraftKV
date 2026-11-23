@@ -5,7 +5,7 @@
 - Linux x86_64 and NVIDIA Hopper H200 (SM90) for the currently supported native deployment path.
 - Python 3.10 with `venv`/pip, compatible CPython development headers (`Python.h`, `pyconfig.h`), a C++ toolchain, Ninja, an NVIDIA driver and a matching CUDA toolkit.
 - User-authorized original model weights and native dependencies, plus the dataset inputs required by the chosen model.
-- A FlashAttention-2 wheel compiled for the selected Python/PyTorch/C++ ABI and a working CUDA toolchain for building pinned FA3 and B01 components.
+- Network access to the official FlashAttention GitHub release (the installer automatically downloads a SHA-256-pinned FA2 wheel matching the selected Python/PyTorch/C++ ABI), plus a working CUDA toolchain for pinned FA3 and B01. For offline environments, provide an authorized ABI-compatible wheel with `--fa2-wheel` and `--fa2-sha256`.
 
 Keep environments, model assets, native source archives, caches and generated files **outside** the source checkout. Different backbones have different pinned Python/PyTorch/CUDA dependencies: do not put them all in one virtual environment. The [installation manifest](../scripts/install_manifest.json) defines the dependency versions and available asset sources.
 
@@ -18,16 +18,13 @@ Choose a model from `./scripts/draftkv.sh list`; this example uses LingBot-World
   --backbone lingbot1.3b \
   --python python3.10 \
   --cuda-home /usr/local/cuda-12.6 \
-  --env-root /external/draftkv-envs \
-  --asset-root /external/draftkv-assets \
-  --dependency-root /external/authorized-native-sources \
-  --fa2-wheel /external/wheels/flash_attn-2.8.3-cp310-cp310-linux_x86_64.whl \
-  --fa2-sha256 REPLACE_WITH_ACTUAL_SHA256 \
-  --python-dev-root /external/python-dev/usr/include \
+  --env-root ${HOME}/.cache/draftkv/envs \
+  --asset-root ${HOME}/.cache/draftkv/assets \
+  --dependency-root /path/to/authorized-native-sources \
   --authorized-gated
 ```
 
-The wheel filename is an example: use the actual file and its lowercase SHA-256 digest. `--authorized-gated` means you have independently obtained permission for gated sources. Use `--with-dataset` only when dataset assets are also required. `--jobs N` sets native build parallelism. Use `--dry-run` to inspect installation selections without modifying the environment.
+If the system Python 3.10 development headers are not available, add `--python-dev-root /path/to/python3.10/includes`. FlashAttention-2 is downloaded from an official pinned release URL, verified against its SHA-256 and exact size, cached outside the source tree, and installed into the model environment. No manual wheel path is required. Optional offline override: `--fa2-wheel /path/to/matching.whl --fa2-sha256 ACTUAL_SHA256`. `--authorized-gated` requires independently granted upstream access; `--with-dataset` installs dataset assets when needed. `--jobs N` adjusts native build parallelism, and `--dry-run` inspects the selection without installing.
 
 The installer checks the [external dependency hashes](../EXTERNAL_DEPENDENCY_SHA256.json) and uses authorized sources from `--dependency-root`; it never fetches restricted third-party archives for you. The pinned FA3 build uses separately verified reference sources. Model assets may require upstream authentication, manual approval or third-party license compliance.
 
@@ -36,8 +33,8 @@ The installer checks the [external dependency hashes](../EXTERNAL_DEPENDENCY_SHA
 ```bash
 ./scripts/verify_install.sh \
   --backbone lingbot1.3b \
-  --env-root /external/draftkv-envs \
-  --asset-root /external/draftkv-assets \
+  --env-root ${HOME}/.cache/draftkv/envs \
+  --asset-root ${HOME}/.cache/draftkv/assets \
   --scope inference
 ```
 

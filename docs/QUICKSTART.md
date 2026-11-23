@@ -17,23 +17,20 @@ cd DraftKV-public
   --backbone lingbot1.3b \
   --python python3.10 \
   --cuda-home /usr/local/cuda-12.6 \
-  --env-root /external/draftkv-envs \
-  --asset-root /external/draftkv-assets \
-  --dependency-root /external/authorized-native-sources \
-  --fa2-wheel /external/wheels/flash_attn-2.8.3-cp310-cp310-linux_x86_64.whl \
-  --fa2-sha256 REPLACE_WITH_ACTUAL_SHA256 \
-  --python-dev-root /external/python-dev/usr/include \
+  --env-root ${HOME}/.cache/draftkv/envs \
+  --asset-root ${HOME}/.cache/draftkv/assets \
+  --dependency-root /path/to/authorized-native-sources \
   --authorized-gated
 ```
 
-Use the actual paths, the actual SHA-256 of a compatible FlashAttention-2 wheel and your own upstream access authorization. The installer provisions isolated per-backbone environments, verifies external sources and builds the required native components. For prerequisites and optional flags, see [Installation](INSTALL.md).
+Use actual external paths and your own upstream access authorization. The installer **automatically fetches and SHA-256 verifies the official ABI-matched FlashAttention-2 wheel**; there is no need to download a wheel first. Supply `--fa2-wheel PATH --fa2-sha256 DIGEST` only for a verified offline override. It also provisions isolated environments, verifies restricted external sources and builds the required native components. For prerequisites, see [Installation](INSTALL.md).
 
 ## 3. Prepare an input case
 
 ```bash
 ./scripts/draftkv.sh prepare \
   --backbone lingbot1.3b \
-  --env-root /external/draftkv-envs \
+  --env-root ${HOME}/.cache/draftkv/envs \
   --dataset-root /external/orbia \
   --index /external/orbia/installed-files.json \
   --index-sha256 REPLACE_WITH_ACTUAL_INDEX_SHA256 \
@@ -48,8 +45,8 @@ The ORBIA dataset, case and index must originate from an authorized original dis
 ```bash
 ./scripts/draftkv.sh run \
   --backbone lingbot1.3b \
-  --env-root /external/draftkv-envs \
-  --asset-root /external/draftkv-assets \
+  --env-root ${HOME}/.cache/draftkv/envs \
+  --asset-root ${HOME}/.cache/draftkv/assets \
   --input /external/prepared/lingbot13/cases/YOUR_ORBIA_CASE_ID/request.json \
   --output /external/runs/startup/native.mp4 \
   --gpu 0 --profile off --startup-only
@@ -62,8 +59,8 @@ This compiles/imports the native extension only; it does not generate video. A c
 ```bash
 ./scripts/draftkv.sh run \
   --backbone lingbot1.3b \
-  --env-root /external/draftkv-envs \
-  --asset-root /external/draftkv-assets \
+  --env-root ${HOME}/.cache/draftkv/envs \
+  --asset-root ${HOME}/.cache/draftkv/assets \
   --input /external/prepared/lingbot13/cases/YOUR_ORBIA_CASE_ID/request.json \
   --output /external/runs/generation/native.mp4 \
   --gpu 0 --profile off
