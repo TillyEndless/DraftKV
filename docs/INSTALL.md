@@ -5,13 +5,13 @@ DraftKV supports four model-specific Python environments and source-verified net
 ## Requirements
 
 - Linux x86_64 and an NVIDIA CUDA GPU with a compatible driver and CUDA toolkit/compiler. Hopper SM90 automatically selects FA3; other NVIDIA architectures automatically select FA2 without Hopper-only compilation.
-- Conda (Miniconda or Anaconda) to provide Python 3.10 with `venv` and `pip`; no system-wide Python 3.10 is required. Also install Git and curl, and reserve sufficient disk space for the selected model and dataset.
+- Conda (Miniconda or Anaconda) to provide Python 3.10 and `pip`; no system-wide Python 3.10 is required. Also install Git and curl, and reserve sufficient disk space for the selected model and dataset.
 - Network access to PyPI, PyTorch wheel indices, official upstream GitHub commits and Hugging Face.
 - For gated Hugging Face assets, an existing user-approved Hugging Face login or `HF_TOKEN`. The installer neither requests nor bypasses access permission.
 
 This installer does not provision the operating system, system CUDA toolkit or GPU driver.
 
-## Conda base interpreter and Backbone venv
+## Native Conda installation (no nested venv)
 
 Clone the repository:
 
@@ -23,11 +23,11 @@ cd DraftKV-public
 Then follow these steps (LingBot-World 1.3B example):
 
 ```bash
-# Step 1: Create and activate the base Python 3.10 environment.
-conda create -n draftkv python=3.10 -y
+# Step 1: Create and activate a dedicated Python 3.10 Conda environment.
+conda create -n draftkv python=3.10 pip -y
 conda activate draftkv
 
-# Step 2: Create/reuse the Backbone venv and install its Python dependencies.
+# Step 2: Install pinned Python packages directly into this Conda environment.
 ./scripts/draftkv.sh environment --backbone lingbot1.3b --python "$(which python)"
 
 # Step 3: Download available model and dataset assets.
@@ -35,7 +35,11 @@ conda activate draftkv
   --asset-root "$HOME/.cache/draftkv/assets" --with-dataset
 ```
 
-Conda supplies only the base interpreter. The installer uses it to create a separate `~/.cache/draftkv-install/<backbone>/venv/` for each Backbone and installs dependencies there, isolated from system Python and Conda environments (including `base` and `draftkv`). Activating the Backbone venv is optional; the CLI selects it automatically. Retain the Conda environment because these venvs depend on its interpreter. Conda does not automatically install the GPU driver or system CUDA toolkit.
+**Conda is the actual package installation and runtime environment**, not just a base interpreter. The active non-base Conda environment receives the locked PyTorch and Python packages; no nested venv is created. The CLI selects this interpreter for environment, bootstrap, install, prepare and run. Native artifacts, cache and receipts remain under `~/.cache/draftkv-install/<backbone>/` outside Conda. Each Backbone needs a **separate** Conda environment because package pins may conflict (for example, LongLive uses different Torch/CUDA packages from LingBot). Conda does not install the GPU driver or system CUDA toolkit.
+
+For legacy installations, `--env-mode venv` explicitly selects the previous per-Backbone venv implementation, even in an activated Conda shell. The default `--env-mode auto` selects an activated non-base Conda environment, or falls back to venv when no dedicated Conda environment is active. Do not reuse a venv cache as a Conda deployment cache: choose a fresh `--env-root` if a completed legacy installation already exists.
+
+To opt into the Aliyun PyTorch wheel mirror on a slow connection, add `--torch-index-url https://mirrors.aliyun.com/pytorch-wheels/cu124` to `environment` or `bootstrap` for a CUDA 12.4 Backbone. This retains exact version pins but does not independently authenticate mirrored wheel bytes against an official hash. By default the official PyTorch index is used.
 
 ## Network bootstrap by Backbone
 
@@ -72,7 +76,7 @@ After cloning and activating the Conda environment above, select **one** of the 
 ./scripts/draftkv.sh bootstrap --backbone solarwm33b --with-dataset
 ```
 
-`bootstrap` defaults to `python3.10` on the active `PATH`, normally supplied by the activated Conda environment. If that command is missing or selects another interpreter, pass the active Conda Python explicitly:
+`bootstrap` defaults to the activated Conda environment's `bin/python`. `--python` is optional and must match that interpreter:
 
 ```bash
 ./scripts/draftkv.sh bootstrap --backbone lingbot1.3b --with-dataset \
@@ -81,7 +85,7 @@ After cloning and activating the Conda environment above, select **one** of the 
 
 The bootstrap installs pinned Python/PyTorch packages, downloads the verified official FA2 wheel for model-native dependencies, **builds current-reference FA3 on Hopper SM90 only**, downloads SHA-verified online model/data assets, and fetches byte-identical public native sources from pinned upstream commits. The optional dataset flag downloads **only published, checksum-verifiable assets**.
 
-Default storage: `~/.cache/draftkv-install/<backbone>/` for isolated environments, `~/.cache/draftkv/assets/` for online model/data files. Set `--env-root` and `--asset-root` to different external locations if more space is needed. An interrupted download can be resumed where the server permits; verified asset files are reused.
+Default storage: the active Conda prefix for Python packages, `~/.cache/draftkv-install/<backbone>/` for native/cache receipts, and `~/.cache/draftkv/assets/` for online model/data files. Set `--env-root` and `--asset-root` to different external locations if more space is needed. An interrupted download can be resumed where the server permits; verified asset files are reused.
 
 ## Native dependency preflight
 

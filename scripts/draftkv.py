@@ -19,7 +19,13 @@ import importlib.util
 import shutil
 from types import SimpleNamespace
 
+
 ROOT = Path(__file__).resolve().parents[1]
+# Load helpers by path: offline tests also import this module directly by file spec.
+_ENV_SPEC = importlib.util.spec_from_file_location(
+    "_draftkv_env_backend_" + "draftkv_py", ROOT / "scripts/env_backend.py")
+env_backend = importlib.util.module_from_spec(_ENV_SPEC)
+_ENV_SPEC.loader.exec_module(env_backend)
 _GPU_SPEC = importlib.util.spec_from_file_location("_draftkv_gpu_backend", ROOT / "scripts/gpu_backend.py")
 gpu_backend = importlib.util.module_from_spec(_GPU_SPEC)
 _GPU_SPEC.loader.exec_module(gpu_backend)
@@ -75,12 +81,16 @@ def commands(parts, env=None, capture=False):
 def paths(args):
     env_root = external(args.env_root)
     base = env_root / args.backbone
-    return base, base / "venv/bin/python", base / "native/b01", base / "native/fa3"
+    mode = env_backend.resolve_mode(getattr(args, "env_mode", "auto"))
+    python = (env_backend.conda_python(getattr(args, "python", None))
+              if mode == "conda" else base / "venv/bin/python")
+    env_backend.binding(base, mode, python, args.backbone)
+    return base, python, base / "native/b01", base / "native/fa3"
 
 
-def cache_paths_for(python):
-    """Restore the setup cache identity without resolving the venv/bin symlink."""
-    base = Path(python).absolute().parent.parent.parent
+def cache_paths_for(python, base=None):
+    """Use the per-Backbone cache, independent of the Python installation root."""
+    base = Path(base) if base is not None else Path(python).absolute().parent.parent.parent
     root = base.resolve()
     paths = {name: base / suffix for name, suffix in PORTABLE_CACHE_LAYOUT.items()}
     require(all(path.resolve().is_relative_to(root) for path in paths.values()),
@@ -88,7 +98,7 @@ def cache_paths_for(python):
     return {name: str(path) for name, path in paths.items()}
 
 
-def env_for(python, *, headers=None, cuda_home=None):
+def env_for(python, *, base=None, headers=None, cuda_home=None):
     """Carry the audited build prerequisites into runtime torch JIT kernels."""
     env = dict(os.environ)
     py = Path(python)
@@ -97,9 +107,12 @@ def env_for(python, *, headers=None, cuda_home=None):
     env["PYTHONNOUSERSITE"] = "1"
     env["PIP_CONFIG_FILE"] = os.devnull
     env["PIP_EXTRA_INDEX_URL"] = ""
-    caches = cache_paths_for(python)
+    if base is None:
+        # Legacy venv callers may infer the base. Native Conda calls pass it explicitly.
+        base = py.absolute().parent.parent.parent
+    caches = cache_paths_for(python, base)
     env.update(caches)
-    receipt = py.parent.parent.parent / "native/build-env.json"
+    receipt = Path(base) / "native/build-env.json"
     if receipt.is_file():
         attestation = json.loads(receipt.read_text())
         require(attestation.get("schema_version") == 1 and
@@ -264,13 +277,15 @@ def resolve_python_headers(python, supplied_root=None):
 def install_model_closure(args, python, base, headers):
     """Install a verified official or user-supplied FA2 wheel and portable extras."""
     wheel, wheel_sha256 = obtain_fa2_wheel(args, python, base)
-    pip = [python, "-m", "pip", "--require-virtualenv", "install", "--no-deps"]
+    flags = env_backend.pip_isolated_flags(env_backend.resolve_mode(getattr(args, "env_mode", "auto")))
+    pip = [python, "-m", "pip", *flags, "install", "--no-deps"]
     commands([*pip, "--force-reinstall", wheel])
     extras = {"setuptools": "84.0.0", "ninja": "1.13.2", **PORTABLE_EXTRAS[args.backbone]}
     commands([*pip, "--only-binary=:all:", "--index-url", "https://pypi.org/simple",
               *(name + "==" + version for name, version in extras.items())])
     if args.backbone in TORCHVISION_CU124:
-        commands([*pip, "--only-binary=:all:", "--index-url", "https://download.pytorch.org/whl/cu124",
+        commands([*pip, "--only-binary=:all:", "--index-url",
+                  env_backend.torch_index_url(getattr(args, "torch_index_url", None), "12.4"),
                   "torchvision==0.21.0+cu124"])
     commands([python, "-m", "pip", "check"])
     if args.backbone in {"solarwm33b", "longlive1.3b"}:
@@ -305,7 +320,7 @@ def install_model_closure(args, python, base, headers):
                 torch_extensions_dir=str((base / "cache/torch_extensions").resolve()),
                 fa2_wheel_sha256=wheel_sha256,
                 fa2_version=expected["flash-attn"], torch_version=expected["torch"],
-                portable_extras=extras, runtime_cache_paths=cache_paths_for(python),
+                portable_extras=extras, runtime_cache_paths=cache_paths_for(python, base),
                 historical_fa3_binary_equivalence=False)
 
 
@@ -416,7 +431,8 @@ def bootstrap_attention(args):
                     runtime_validation="NOT_EXECUTED")
     override = SimpleNamespace(backbone=args.backbone, fa2_wheel=None, fa2_sha256=None)
     wheel, fa2_sha256 = obtain_fa2_wheel(override, python, base)
-    commands([python, "-m", "pip", "--require-virtualenv", "install", "--no-deps", wheel])
+    flags = env_backend.pip_isolated_flags(env_backend.resolve_mode(getattr(args, "env_mode", "auto")))
+    commands([python, "-m", "pip", *flags, "install", "--no-deps", wheel])
     check = commands([python, "-B", "-c",
         "import importlib.metadata as m,json; print(json.dumps({'version':m.version('flash-attn')}))"],
         capture=True)
@@ -427,7 +443,7 @@ def bootstrap_attention(args):
         cuda_home = _cuda_toolkit_root(args.cuda_home)
         # The public Hopper source build needs pinned packaging/build tools;
         # do not rely on whatever happens to be on the host Python path.
-        commands([python, "-m", "pip", "--require-virtualenv", "install",
+        commands([python, "-m", "pip", *flags, "install",
                   "--only-binary=:all:", "--index-url", "https://pypi.org/simple",
                   "setuptools==84.0.0", "ninja==1.13.2"])
         commands([python, "-m", "pip", "check"])
@@ -438,7 +454,7 @@ def bootstrap_attention(args):
                       "--backbone", args.backbone, "--python", python,
                       "--artifact-root", fa3, "--cuda-home", cuda_home,
                       "--jobs", str(args.jobs), "--install"],
-                     env=env_for(python, cuda_home=cuda_home))
+                     env=env_for(python, base=base, cuda_home=cuda_home))
         data = json.loads(fa3_receipt.read_text())
         require(data.get("status") == "BUILT_AND_INSTALLED" and
                 data.get("backbone") == args.backbone,
@@ -498,10 +514,17 @@ def setup_environment(args):
         return
     result = subprocess.run([str(ROOT / "scripts/setup_env.sh"),
                              "--backbone", args.backbone, "--env-root", args.env_root,
-                             "--python", args.python,
-                             "--gpu", str(getattr(args, "gpu", 0)), "--portable"], check=False)
+                              "--python", str(env_backend.conda_python(getattr(args, "python", None)))
+                              if env_backend.resolve_mode(getattr(args, "env_mode", "auto")) == "conda"
+                              else (args.python or "python3.10"),
+                              "--env-mode", env_backend.resolve_mode(getattr(args, "env_mode", "auto")),
+                              "--gpu", str(getattr(args, "gpu", 0)), "--portable",
+                              *(["--torch-index-url", args.torch_index_url]
+                                if getattr(args, "torch_index_url", None) else [])], check=False)
     require(result.returncode in (0, 3) and python.is_file(),
             "base environment installation failed; inspect setup_env.sh report")
+    env_backend.binding(base, env_backend.resolve_mode(getattr(args, "env_mode", "auto")),
+                        python, args.backbone)
     # This stage does not claim FlashAttention native readiness or an E2E GPU run.
     print(json.dumps(dict(status="BASE_ENVIRONMENT_PREPARED",
                           backbone=args.backbone, python=str(python),
@@ -560,15 +583,21 @@ def install(args):
     # real installed model venv and fail on actual errors.
     installed = subprocess.run([str(ROOT / "scripts/setup_env.sh"),
         "--backbone", args.backbone, "--env-root", args.env_root,
-        "--python", args.python, "--gpu", str(args.gpu), "--portable"], check=False)
+        "--python", str(env_backend.conda_python(getattr(args, "python", None)))
+        if env_backend.resolve_mode(getattr(args, "env_mode", "auto")) == "conda"
+        else (args.python or "python3.10"),
+        "--env-mode", env_backend.resolve_mode(getattr(args, "env_mode", "auto")),
+        "--gpu", str(args.gpu), "--portable",
+        *(["--torch-index-url", args.torch_index_url]
+          if getattr(args, "torch_index_url", None) else [])], check=False)
     require(installed.returncode in (0, 3),
             "base environment installation failed; inspect setup_env.sh output")
-    require(python.is_file(), "model venv missing after setup")
+    require(python.is_file(), "model Python missing after setup")
     headers = resolve_python_headers(python, args.python_dev_root)
     runtime_receipt = install_model_closure(args, python, base, headers)
     runtime_receipt["gpu"] = gpu
     runtime_receipt["selected_attention_backend"] = attention_backend
-    environment = env_for(python, headers=headers, cuda_home=args.cuda_home)
+    environment = env_for(python, base=base, headers=headers, cuda_home=args.cuda_home)
     commands(native_cmd)
     if args.asset_root:
         for category in ("--models", "--datasets") if args.with_dataset else ("--models",):
@@ -678,7 +707,7 @@ def prepare_inputs(args):
                "--case-ids", args.case_id, "--output", output]
         if args.native_outputs:
             cmd += ["--native-outputs", external(args.native_outputs)]
-    environment = env_for(python)
+    environment = env_for(python, base=base)
     environment["PYTHONPATH"] = str(source / "src")
     commands(cmd, env=environment)
     request = output / "cases" / args.case_id / "request.json"
@@ -716,7 +745,7 @@ def run(args):
                 cmd += ["--silence", silence]
             if args.native_source:
                 cmd += ["--native-source", args.native_source]
-            commands(cmd, env=env_for(python))
+            commands(cmd, env=env_for(python, base=base))
             input_plan = source_plan
     else:
         require("algorithm_plugin" in original and "request" in original,
@@ -730,7 +759,7 @@ def run(args):
                               video_generation="NOT_EXECUTED"), indent=2))
         return
     device = gpu_uuid(args.gpu)
-    environment = env_for(python)
+    environment = env_for(python, base=base)
     # The independent input binder verifies the source-locked original plan,
     # all asset hashes, immutable algorithm fields and rebuilt native receipts.
     commands([sys.executable, ROOT / "tools/fresh_binding.py", "--backbone", args.backbone,
@@ -784,7 +813,7 @@ def make_parser():
                            "needed only for dependencies not downloadable from exact upstream")
             c.add_argument("--dependency-cache", help="optional external cache for source-verified "
                            "public upstream files")
-            c.add_argument("--python", default="python3.10", help="base Python 3.10")
+            c.add_argument("--python", help="Python 3.10; defaults to activated Conda Python in Conda mode")
             c.add_argument("--cuda-home", required=True)
             c.add_argument("--gpu", type=int, default=0,
                            help="physical GPU index for automatic FA3 (SM90) / FA2 selection")
@@ -820,7 +849,7 @@ def make_parser():
     boot.add_argument("--backbone", choices=BACKBONES, required=True)
     boot.add_argument("--env-root", default=str(Path.home() / ".cache/draftkv-install"))
     boot.add_argument("--asset-root", default=str(Path.home() / ".cache/draftkv/assets"))
-    boot.add_argument("--python", default="python3.10")
+    boot.add_argument("--python", help="Python 3.10; defaults to activated Conda Python")
     boot.add_argument("--gpu", type=int, default=0,
                       help="physical GPU index for attention backend detection")
     boot.add_argument("--cuda-home",
@@ -840,7 +869,7 @@ def make_parser():
     environment = sub.add_parser("environment", help="install per-backbone pinned Python packages")
     environment.add_argument("--backbone", choices=BACKBONES, required=True)
     environment.add_argument("--env-root", default=str(Path.home() / ".cache/draftkv-install"))
-    environment.add_argument("--python", default="python3.10")
+    environment.add_argument("--python", help="Python 3.10; defaults to activated Conda Python")
     environment.add_argument("--gpu", type=int, default=0,
                              help="physical GPU index for attention backend detection")
     environment.add_argument("--dry-run", action="store_true")
@@ -855,6 +884,13 @@ def make_parser():
     prep.add_argument("--manifest", help="authorized original LongLive WorldAttention manifest")
     prep.add_argument("--native-outputs", help="verified original LongLive native output policy")
     prep.add_argument("--output", required=True, help="new external directory for prepared requests")
+    for command in (boot, environment, sub.choices["install"]):
+        command.add_argument("--torch-index-url",
+                             help="optional official or Aliyun CUDA-specific PyTorch wheel index")
+    for command in (boot, environment, prep, *(
+            sub.choices[name] for name in ("install", "run"))):
+        command.add_argument("--env-mode", choices=env_backend.MODES, default="auto",
+                             help="auto uses activated Conda, otherwise legacy venv")
     return p
 
 

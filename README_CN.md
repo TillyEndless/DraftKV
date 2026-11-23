@@ -41,7 +41,7 @@ cd DraftKV-public
 Conda 负责提供 Python 3.10 基础解释器。运行安装命令前，先创建并激活环境：
 
 ```bash
-conda create -n draftkv python=3.10 -y
+conda create -n draftkv python=3.10 pip -y
 conda activate draftkv
 ```
 
@@ -53,7 +53,18 @@ conda activate draftkv
 ./scripts/draftkv.sh environment --backbone lingbot1.3b --python "$(which python)"
 ```
 
-安装器使用该 Conda Python 3.10，在 `~/.cache/draftkv-install/lingbot1.3b/venv/` 创建或复用 Backbone 专属 venv，再将固定版本 Python/PyTorch 依赖安装到这个 venv 中，与系统 Python 和 Conda 环境（包括 `base`、`draftkv`）隔离。每个 Backbone 继续使用独立 venv；**激活该 venv 是可选的**，DraftKV CLI 会自动选择它。请保留 Conda 环境，venv 仍依赖其中的基础解释器。
+现在安装器会将固定版本的 Python/PyTorch 依赖**直接安装到已激活的 `draftkv` Conda 环境中**，不再创建嵌套 venv。命令 `environment`、`bootstrap`、`install`、`prepare`、`run` 均使用同一 Conda 解释器；Native 编译产物、安装记录和缓存仍保存在 `~/.cache/draftkv-install/lingbot1.3b/`。要求 Conda 环境使用 Python 3.10，且不能为 `base`。
+
+如果服务器连接 PyTorch 官方下载站很慢，可以显式使用相同 CUDA 版本的阿里云 wheel 镜像：
+
+```bash
+./scripts/draftkv.sh environment --backbone lingbot1.3b \
+  --torch-index-url https://mirrors.aliyun.com/pytorch-wheels/cu124
+```
+
+PyTorch 的精确版本锁不变。第三方 wheel 镜像需要用户主动指定；安装器不会独立验证镜像二进制的 SHA-256，如需字节级来源保证请使用官方源。
+
+**每个 Backbone 需要独立的 Conda 环境。** 四组模型的 PyTorch/CUDA 和部分依赖版本并不一致；其他模型请分别使用 `draftkv-longlive`、`draftkv-lingbot14`、`draftkv-solarwm` 等环境名称。安装器会阻止将其他 Backbone 安装进已绑定的环境。
 
 ### Step 3：下载模型和数据集资产
 
@@ -66,7 +77,7 @@ conda activate draftkv
 
 ### 四组 Backbone 的一键网络部署
 
-必须先完成 Step 1，创建并激活 Conda 环境。`bootstrap` 默认使用当前 `PATH` 中的 `python3.10`，正常应指向 Conda 环境提供的 Python 3.10。如果找不到该命令或解析到其他解释器，请显式传入当前 Conda Python：
+必须先完成 Step 1，创建并激活专用 Conda 环境。`bootstrap` 会自动选用该环境的 `bin/python`；也可以显式传入 `--python`，但必须与当前激活的 Conda Python 一致：
 
 ```bash
 ./scripts/draftkv.sh bootstrap --backbone lingbot1.3b --with-dataset \
@@ -101,7 +112,7 @@ conda activate draftkv
 
 以上**网络准备命令**无需提供本地 wheel、原生依赖压缩包、手动计算的 SHA-256、数据集索引或其他占位文件路径。不同 Backbone 的下载体积差异较大，特别是 14B 和 33B 模型，请确保有足够的磁盘空间。重复执行会校验并复用已经下载的文件。
 
-默认环境路径为 `~/.cache/draftkv-install/<backbone>/`，模型和数据资产存放在 `~/.cache/draftkv/assets/`。可以使用 `--env-root` 和 `--asset-root` 调整到容量更大的存储位置。
+Python 包直接安装在已激活的 Conda 环境中；Native 构建、安装记录与缓存默认放在 `~/.cache/draftkv-install/<backbone>/`，模型资产在 `~/.cache/draftkv/assets/`。`--env-root` 与 `--asset-root` 只调整这些外部目录，不改变 Conda 环境路径。
 
 ### 网络部署的范围与限制
 
@@ -126,7 +137,9 @@ conda activate draftkv
 | `bootstrap --backbone MODEL` | 安装模型专属 Python 环境，下载可用的在线资产及精确匹配的公开 native 源码 |
 | `--with-dataset` | 同时下载已公开、带 SHA-256 锁定的数据集资产；不代表包含未发布的原始案例 |
 | `--env-root DIR` / `--asset-root DIR` | 指定外部环境、模型资产与缓存的存储目录 |
-| `--python "$(which python)"` | 使用当前 Conda Python 3.10 创建 Backbone 专属 venv |
+| `--python "$(which python)"` | 可选：显式指定当前激活的 Conda Python 3.10 |
+| `--torch-index-url URL` | 可选：PyTorch 官方或阿里云的 CUDA 对应版本 wheel 镜像 |
+| `--env-mode {auto,conda,venv}` | 默认自动使用已激活的非 base Conda 环境，`venv` 保留旧版独立虚拟环境流程 |
 | `--dry-run` | 仅查看安装计划，不创建环境或下载 |
 | `environment` / `assets` | 单独执行 Python 环境安装或在线资产下载 |
 | `native-deps` | 检查指定 Backbone 的原始 native 源码锁依赖 |

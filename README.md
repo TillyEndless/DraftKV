@@ -41,7 +41,7 @@ cd DraftKV-public
 Conda provides the base Python 3.10 interpreter. Create and activate it before running the installation commands:
 
 ```bash
-conda create -n draftkv python=3.10 -y
+conda create -n draftkv python=3.10 pip -y
 conda activate draftkv
 ```
 
@@ -53,7 +53,18 @@ For LingBot-World 1.3B, pass the active Conda interpreter explicitly:
 ./scripts/draftkv.sh environment --backbone lingbot1.3b --python "$(which python)"
 ```
 
-The installer uses this Conda Python 3.10 to create/reuse the Backbone's independent `~/.cache/draftkv-install/lingbot1.3b/venv/`. Pinned Python/PyTorch dependencies are installed in that venv, keeping them isolated from the system Python and Conda environments, including `base` and `draftkv`. Each Backbone keeps its own venv; activating that venv is optional because DraftKV's CLI selects it automatically. Keep the Conda environment available, since the venv relies on its base interpreter.
+The installer now installs pinned Python/PyTorch packages **directly into the activated `draftkv` Conda environment**; it does not create a nested venv. The active Conda interpreter is used throughout `environment`, `bootstrap`, `install`, `prepare`, and `run`. Package caches, native builds, and verification receipts remain outside Conda at `~/.cache/draftkv-install/lingbot1.3b/`. The active environment must be Python 3.10 and must not be Conda `base`.
+
+For faster installation on servers that reach the official PyTorch wheel index slowly, you may explicitly use the CUDA-matched Aliyun wheel index:
+
+```bash
+./scripts/draftkv.sh environment --backbone lingbot1.3b \
+  --torch-index-url https://mirrors.aliyun.com/pytorch-wheels/cu124
+```
+
+The original exact PyTorch package versions remain pinned. A third-party wheel mirror is **opt-in** and its binary contents are not independently SHA-256 verified by this installer; use the official index if byte-level provenance is required.
+
+**Use one Conda environment per Backbone.** Their locked Torch/CUDA and other dependency versions differ. For other models, use names such as `draftkv-longlive`, `draftkv-lingbot14`, and `draftkv-solarwm` (`conda create -n NAME python=3.10 -y`). The installer prevents an environment already assigned to one Backbone from being reused by another.
 
 ### Step 3: Download model and dataset assets
 
@@ -66,7 +77,7 @@ The base environment step does not install native FlashAttention or build B01/FA
 
 ### One-command network bootstrap for all four Backbones
 
-First create and activate the Conda environment in Step 1. `bootstrap` defaults to `python3.10` on the active `PATH`, which should be the Conda environment's Python 3.10. If that name is missing or resolves to another interpreter, select the active Conda Python explicitly:
+First create and activate a dedicated Conda environment in Step 1. `bootstrap` automatically selects its `bin/python`; the explicit `--python` form below is optional and must refer to that same interpreter:
 
 ```bash
 ./scripts/draftkv.sh bootstrap --backbone lingbot1.3b --with-dataset \
@@ -101,7 +112,7 @@ For normal setup, the `bootstrap` command combines the environment and online as
 
 No local wheel path, dependency archive, manually calculated SHA-256, dataset index, or other placeholder file path is needed for these **network bootstrap commands**. Download sizes vary substantially by model; reserve adequate free storage, particularly for the 14B and 33B checkpoints. Running the same command again verifies and reuses previously downloaded files.
 
-By default, environments are stored in `~/.cache/draftkv-install/<backbone>/` and downloaded assets in `~/.cache/draftkv/assets/`. Both can be relocated via `--env-root` and `--asset-root`.
+By default, native build artifacts, installation receipts and download caches reside in `~/.cache/draftkv-install/<backbone>/` and assets in `~/.cache/draftkv/assets/`; the Python packages reside in the activated Conda environment. `--env-root` and `--asset-root` relocate these external directories, **not** the Conda interpreter.
 
 ### What the network bootstrap does—and does not do
 
@@ -126,7 +137,9 @@ By default, environments are stored in `~/.cache/draftkv-install/<backbone>/` an
 | `bootstrap --backbone MODEL` | Install the model's pinned environment and fetch available network assets and byte-identical public native sources |
 | `--with-dataset` | Also download publicly available, SHA-locked dataset assets; not a replacement for unreleased original cases |
 | `--env-root DIR` / `--asset-root DIR` | Select external environment and asset/cache locations |
-| `--python "$(which python)"` | Use the active Conda Python 3.10 to create the Backbone venv |
+| `--python "$(which python)"` | Optionally confirm the interpreter is the activated Conda Python 3.10 |
+| `--torch-index-url URL` | Optional official/Aliyun CUDA-matched wheel index for PyTorch installation |
+| `--env-mode {auto,conda,venv}` | Auto-select active Conda (non-base); `venv` preserves the legacy isolated-venv workflow |
 | `--dry-run` | Inspect the plan without installing or downloading |
 | `environment` / `assets` | Execute the Python environment or online asset phase separately |
 | `native-deps` | Inspect the original source-lock requirements for a specific Backbone |

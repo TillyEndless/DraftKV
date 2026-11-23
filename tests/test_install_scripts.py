@@ -326,7 +326,7 @@ class InstallScripts(unittest.TestCase):
     def test_shell_entrypoints_work_from_foreign_cwd_and_paths_with_spaces(self):
         scripts = self.root / "checkout with spaces/scripts"
         scripts.mkdir(parents=True)
-        for name in ("setup_env.sh", "prepare_assets.sh", "verify_install.sh", "_install.py", "install_manifest.json"):
+        for name in ("setup_env.sh", "prepare_assets.sh", "verify_install.sh", "_install.py", "env_backend.py", "install_manifest.json"):
             shutil.copy2(ROOT / "scripts" / name, scripts / name)
         bootstrap = self.root / "bootstrap python"
         bootstrap.symlink_to(sys.executable)

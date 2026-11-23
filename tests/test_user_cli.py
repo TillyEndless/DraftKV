@@ -129,7 +129,8 @@ class UserCLITests(unittest.TestCase):
 
     def test_install_requests_audited_portable_dependency_resolution(self):
         code=(cli.ROOT/"scripts/draftkv.py").read_text()
-        self.assertIn('"--python", args.python, "--gpu", str(args.gpu), "--portable"]', code)
+        self.assertIn('"--env-mode", env_backend.resolve_mode(', code)
+        self.assertIn('"--portable",', code)
         helper=(cli.ROOT/"scripts/_install.py").read_text()
         self.assertIn('"--upgrade-strategy", "only-if-needed"', helper)
         self.assertIn('"pip", "check"', helper)
