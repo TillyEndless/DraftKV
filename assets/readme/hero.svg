@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="390" viewBox="0 0 1200 390" role="img" aria-labelledby="title desc">
+  <title id="title">DraftKV — persistent worlds through hierarchical streaming retrieval</title>
+  <desc id="desc">DraftKV keeps a compact draft memory on the GPU to locate relevant historical KV, then streams selected full-resolution KV from the CPU to tiled attention.</desc>
+  <rect width="1200" height="390" rx="24" fill="#101a2a"/>
+  <path d="M62 302 H664" stroke="#324459" stroke-width="1"/>
+  <rect x="62" y="45" width="242" height="34" rx="17" fill="#1a3640"/>
+  <circle cx="83" cy="62" r="5" fill="#51d5bf"/>
+  <text x="100" y="68" font-size="18" font-weight="600" fill="#9eecdd" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif">VIDEO WORLD MODELS</text>
+  <text x="58" y="175" font-size="97" font-weight="750" letter-spacing="-5" fill="#f5f7fb" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif">DraftKV</text>
+  <text x="63" y="224" font-size="29" font-weight="600" fill="#e5eaf2" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif">Protecting persistent worlds</text>
+  <text x="63" y="263" font-size="24" fill="#9eb2c7" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif">through hierarchical streaming retrieval</text>
+  <text x="63" y="340" font-size="19" letter-spacing="0.4" fill="#c8d5e5" font-family="ui-monospace,SFMono-Regular,Menlo,monospace">TRAINING-FREE</text>
+  <circle cx="273" cy="333" r="3" fill="#51d5bf"/>
+  <text x="292" y="340" font-size="19" letter-spacing="0.4" fill="#c8d5e5" font-family="ui-monospace,SFMono-Regular,Menlo,monospace">CPU → GPU STREAMING</text>
+  <rect x="709" y="39" width="440" height="314" rx="20" fill="#162337" stroke="#34445a" stroke-width="2"/>
+  <text x="741" y="76" font-size="18" font-weight="600" letter-spacing="1.5" fill="#a8bfd1" font-family="ui-monospace,SFMono-Regular,Menlo,monospace">HIERARCHICAL RETRIEVAL</text>
+  <rect x="739" y="97" width="380" height="67" rx="12" fill="#23374a"/>
+  <rect x="739" y="97" width="6" height="67" rx="3" fill="#51d5bf"/>
+  <text x="762" y="124" font-size="17" fill="#81cabc" font-family="ui-monospace,SFMono-Regular,Menlo,monospace">01  GEOMETRY</text>
+  <text x="762" y="150" font-size="25" font-weight="650" fill="#f6f8fb" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif">Draft Grounding</text>
+  <path d="M929 164 V181" stroke="#51d5bf" stroke-width="3" stroke-linecap="round"/>
+  <path d="M923 175 L929 182 L935 175" fill="none" stroke="#51d5bf" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="739" y="183" width="380" height="67" rx="12" fill="#23374a"/>
+  <rect x="739" y="183" width="6" height="67" rx="3" fill="#51d5bf"/>
+  <text x="762" y="210" font-size="17" fill="#81cabc" font-family="ui-monospace,SFMono-Regular,Menlo,monospace">02  BLOCK RELEVANCE</text>
+  <text x="762" y="236" font-size="25" font-weight="650" fill="#f6f8fb" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif">Draft Refinement</text>
+  <path d="M929 250 V267" stroke="#edbe79" stroke-width="3" stroke-linecap="round"/>
+  <path d="M923 261 L929 268 L935 261" fill="none" stroke="#edbe79" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="739" y="269" width="380" height="58" rx="12" fill="#3a3540"/>
+  <rect x="739" y="269" width="6" height="58" rx="3" fill="#edbe79"/>
+  <text x="762" y="293" font-size="17" fill="#f5ce92" font-family="ui-monospace,SFMono-Regular,Menlo,monospace">03  TILED ATTENTION</text>
+  <text x="762" y="318" font-size="24" font-weight="650" fill="#f6f8fb" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif">Streaming CG-Attention</text>
+</svg>
