@@ -40,7 +40,7 @@ conda activate draftkv
 
 如需复用已有模型文件或调整下载目录，可指定 `--asset-root /path/to/assets`；安装缓存可通过 `--env-root /path/to/cache` 指定。安装器会校验并复用 SHA-256 匹配的文件。
 
-Native 构建、推理输入准备和视频生成步骤见[完整安装文档](docs/INSTALL.md)及[详细 Quickstart](docs/QUICKSTART.md)。
+Native 构建、推理输入准备和视频生成步骤见[完整安装文档](docs/INSTALL_CN.md)及[详细 Quickstart](docs/QUICKSTART_CN.md)。
 
 ## 支持的 Backbone
 
@@ -55,9 +55,9 @@ Native 构建、推理输入准备和视频生成步骤见[完整安装文档](d
 
 ## 文档
 
-- **[安装说明](docs/INSTALL.md)** — 环境、模型资产与 Native 依赖。
-- **[Quickstart](docs/QUICKSTART.md)** — 输入准备与推理流程。
-- **[Profiling](docs/PROFILING.md)** — 性能测量入口及说明。
+- **[安装说明](docs/INSTALL_CN.md)** — 环境、模型资产与 Native 依赖。
+- **[Quickstart](docs/QUICKSTART_CN.md)** — 输入准备与推理流程。
+- **[Profiling](docs/PROFILING_CN.md)** — 性能测量入口及说明。
 - **[第三方许可声明](docs/THIRD_PARTY_NOTICES.md)** — 上游组件及许可证。
 
 统一入口为 [`scripts/draftkv.sh`](scripts/draftkv.sh)。各 Backbone 的源码快照位于 [`versions/`](versions)，离线检查位于 [`tests/`](tests)。

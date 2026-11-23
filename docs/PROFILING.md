@@ -1,5 +1,7 @@
 # Profiling options
 
+**English** | [简体中文](PROFILING_CN.md)
+
 DraftKV provides two modes through the portable command-line interface:
 
 | Mode | Purpose |
