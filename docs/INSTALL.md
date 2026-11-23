@@ -1,5 +1,7 @@
 # Installation
 
+**English** | [简体中文](INSTALL_CN.md)
+
 DraftKV supports four model-specific Python environments and source-verified network asset downloads. This guide separates **online bootstrap** from **end-to-end inference**, because not every original native source and benchmark input is publicly available.
 
 ## Requirements
@@ -16,8 +18,8 @@ This installer does not provision the operating system, system CUDA toolkit or G
 Clone the repository:
 
 ```bash
-git clone https://github.com/TillyEndless/DraftKV-public.git
-cd DraftKV-public
+git clone https://github.com/TillyEndless/DraftKV.git
+cd DraftKV
 ```
 
 Then follow these steps (LingBot-World 1.3B example):
