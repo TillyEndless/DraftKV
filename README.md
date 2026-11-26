@@ -4,6 +4,8 @@
 
 <p align="center"><strong>English</strong> · <a href="docs/README_CN.md">简体中文</a></p>
 
+<p align="center"><a href="https://arxiv.org/abs/2611.31944"><img src="https://img.shields.io/badge/arXiv-2611.31944-b31b1b.svg" alt="Paper on arXiv"></a></p>
+
 DraftKV improves scene revisit consistency in video generation by retrieving relevant historical KV caches through **Draft Grounding** and **Draft Refinement**, while **Streaming CG-Attention** overlaps CPU-to-GPU KV transfers with attention computation to hide transfer latency. The entire framework requires no model retraining.
 
 <p align="center">

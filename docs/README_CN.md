@@ -4,6 +4,8 @@
 
 <p align="center"><a href="../README.md">English</a> · <strong>简体中文</strong></p>
 
+<p align="center"><a href="https://arxiv.org/abs/2611.31944"><img src="https://img.shields.io/badge/arXiv-2611.31944-b31b1b.svg" alt="论文 on arXiv"></a></p>
+
 DraftKV 通过 **Draft Grounding** 与 **Draft Refinement** 检索相关历史 KV Cache，提高视频生成中的场景回访一致性；通过 **Streaming CG-Attention** 将 CPU→GPU KV 传输时间隐藏在 Attention 计算当中。整个框架无需重新训练模型。
 
 <p align="center">
